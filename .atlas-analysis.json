@@ -1,0 +1,70 @@
+{
+  "projectType": "cli-tool",
+  "projectName": "Windows Python Launcher",
+  "projectDescription": "Customizable Windows batch script to launch Python projects and files with automatic environment setup and dependency management",
+  "theme": "mint",
+  "primaryColor": "#3776AB",
+  "lightColor": "#4B8BBE",
+  "darkColor": "#306998",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Configuration",
+        "pages": [
+          "configuration/overview",
+          "configuration/python-setup",
+          "configuration/virtual-environment",
+          "configuration/window-options"
+        ]
+      },
+      {
+        "group": "Usage",
+        "pages": [
+          "usage/running-scripts",
+          "usage/drag-and-drop",
+          "usage/arguments",
+          "usage/initial-files"
+        ]
+      },
+      {
+        "group": "Advanced",
+        "pages": [
+          "advanced/portable-python",
+          "advanced/troubleshooting",
+          "advanced/examples"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Automatic Python version detection with py launcher support",
+    "Optional virtual environment creation and management",
+    "Automatic requirements.txt installation",
+    "Auto-detection of initial Python files (run.py, main.py, app.py)",
+    "Drag-and-drop file execution support",
+    "Customizable command prompt behavior (minimized, auto-close)",
+    "Portable Python version support",
+    "Command-line argument passing to Python scripts"
+  ],
+  "publicApiSurface": [
+    "pythonversion - Python version configuration",
+    "pythondir - Python executable path or command",
+    "windowname - Command prompt window title",
+    "initialfiles - List of auto-detected initial files",
+    "usevenv - Virtual environment toggle (0/1)",
+    "venvname - Virtual environment name",
+    "installrequirementsfile - Requirements installation toggle (0/1)",
+    "requirementsfile - Requirements file path",
+    "minimizedcmd - Start minimized toggle (0/1)",
+    "autoclosecmd - Auto-close window toggle (0/1)",
+    "passarguments - Pass arguments to script toggle (0/1)",
+    "alertifpynotinstalled - Python installation alert toggle (0/1)"
+  ]
+}
