@@ -78,7 +78,7 @@ Absolute paths will break if the project is moved to a different location or run
 
 ### Structure 1: Python Inside Project
 
-```
+```text
 MyProject/
 ├── PythonLauncher.bat
 ├── python/                    (portable Python)
@@ -98,7 +98,7 @@ set usevenv=1
 
 ### Structure 2: Shared Python Folder
 
-```
+```text
 Projects/
 ├── python-portable/           (shared Python)
 │   └── python.exe
@@ -118,7 +118,7 @@ set usevenv=1
 
 ### Structure 3: Distribution Package
 
-```
+```text
 MyApp/
 ├── MyApp.bat                  (renamed launcher)
 ├── runtime/
@@ -285,7 +285,7 @@ D:\> D:\MyProject\PythonLauncher.bat
 <Tip>
 **Document the Python version** in your project README so users know which portable Python to download:
 
-```
+```text
 This project uses Python 3.11.x (portable)
 Download from: https://www.python.org/downloads/
 ```

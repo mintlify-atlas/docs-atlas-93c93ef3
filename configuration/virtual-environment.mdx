@@ -241,7 +241,7 @@ deactivate
 The launcher uses pip to install packages, so your requirements file should follow pip's format:
 
 ### Basic Format
-```
+```text
 numpy==1.24.3
 pandas>=2.0.0
 requests~=2.31.0
@@ -249,7 +249,7 @@ flask
 ```
 
 ### With Comments
-```
+```text
 # Core dependencies
 numpy==1.24.3
 pandas>=2.0.0
@@ -263,7 +263,7 @@ pytest>=7.0.0
 ```
 
 ### Advanced Features
-```
+```text
 # Install from git repository
 git+https://github.com/user/repo.git@v1.0.0
 
@@ -387,7 +387,7 @@ set venvname=.venv
 ```
 
 Add to `.gitignore`:
-```
+```text
 .venv/
 ```
 
@@ -395,7 +395,7 @@ Add to `.gitignore`:
 
 Use exact versions in requirements.txt for reproducibility:
 
-```
+```text
 numpy==1.24.3
 pandas==2.0.2
 ```
@@ -404,7 +404,7 @@ pandas==2.0.2
 
 Add comments to requirements.txt explaining why packages are needed:
 
-```
+```text
 # Data processing
 numpy==1.24.3
 pandas==2.0.2
@@ -419,13 +419,13 @@ beautifulsoup4==4.12.2
 Maintain separate files:
 
 **requirements.txt** (production):
-```
+```text
 flask==2.3.2
 requests==2.31.0
 ```
 
 **requirements-dev.txt** (development):
-```
+```text
 -r requirements.txt
 pytest==7.4.0
 black==23.3.0
