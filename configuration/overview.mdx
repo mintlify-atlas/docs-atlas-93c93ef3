@@ -1,0 +1,147 @@
+---
+title: Configuration Overview
+description: Learn how to configure the Windows Python Launcher to customize its behavior for your projects
+---
+
+## Introduction
+
+The Windows Python Launcher uses a simple configuration system built directly into the batch script. All configuration options are defined as environment variables at the top of the `PythonLauncher.bat` file.
+
+## How to Configure
+
+To customize the launcher for your project:
+
+1. Open `PythonLauncher.bat` in a text editor
+2. Locate the **Configuration** section (lines 6-36)
+3. Modify the `set` statements to change configuration values
+4. Save the file
+
+<Note>
+No restart or reload is required - changes take effect immediately the next time you run the launcher.
+</Note>
+
+## Configuration Structure
+
+All configuration options follow this syntax:
+
+```batch
+set variablename=value
+```
+
+### Example Configuration Section
+
+```batch
+:::------------------------------------Configuration------------------------------------:::
+
+::Set the python version to use
+set pythonversion=3.11
+::Configure the python exe to use
+set pythondir=py
+
+::Define the title of the cmd window
+set windowname=Python
+
+::Set if a venv will be created
+set usevenv=1
+set venvname=pyvenv
+```
+
+## Configuration Categories
+
+The configuration options are organized into three main categories:
+
+### Python Setup
+
+Controls which Python interpreter is used and how it's located.
+
+- `pythonversion` - Specify Python version (e.g., 3.11, 3.10)
+- `pythondir` - Path to Python executable or launcher command
+
+See [Python Setup](/configuration/python-setup) for details.
+
+### Virtual Environment
+
+Manages automatic virtual environment creation and package installation.
+
+- `usevenv` - Enable/disable virtual environment usage
+- `venvname` - Name of the virtual environment directory
+- `installrequirementsfile` - Auto-install dependencies
+- `requirementsfile` - Path to requirements file
+
+See [Virtual Environment](/configuration/virtual-environment) for details.
+
+### Window Options
+
+Customizes the command window behavior and appearance.
+
+- `windowname` - Title displayed in the window
+- `minimizedcmd` - Start window minimized
+- `autoclosecmd` - Auto-close when script finishes
+- `passarguments` - Forward arguments to Python script
+- `alertifpynotinstalled` - Show alert if Python is missing
+
+See [Window Options](/configuration/window-options) for details.
+
+## Boolean Values
+
+<Tip>
+Many configuration options use boolean (true/false) values. In batch scripts:
+- `1` = enabled/true
+- `0` = disabled/false
+</Tip>
+
+## File Detection
+
+The launcher includes an auto-detection feature for initial Python files:
+
+```batch
+set initialfiles="run.py" "main.py" "app.py"
+```
+
+The launcher will search for these files in order and run the first one found. You can customize this list to match your project structure.
+
+<Note>
+File names in the `initialfiles` list must be enclosed in double quotes and separated by spaces.
+</Note>
+
+## Best Practices
+
+### Project-Specific Configuration
+
+Copy `PythonLauncher.bat` into each project directory and configure it specifically for that project's needs. This allows different projects to have different:
+
+- Python versions
+- Virtual environment settings
+- Window behaviors
+
+### Version Control
+
+Consider adding `PythonLauncher.bat` to your version control system so team members share the same configuration.
+
+### Comments
+
+The batch file uses double colons (`::`) for comments. Add your own comments to document project-specific settings:
+
+```batch
+::Using Python 3.11 for TensorFlow compatibility
+set pythonversion=3.11
+```
+
+## Relative vs Absolute Paths
+
+When specifying paths in configuration values, you can use:
+
+- **Relative paths**: Use `%cd%\path\to\file` to reference locations relative to the launcher
+- **Absolute paths**: Use full paths like `C:\Python\python.exe`
+
+<Warning>
+Be careful with relative paths if you plan to run the launcher from different working directories.
+</Warning>
+
+## Next Steps
+
+Explore the detailed documentation for each configuration category:
+
+- [Python Setup](/configuration/python-setup) - Configure Python interpreter selection
+- [Virtual Environment](/configuration/virtual-environment) - Set up automatic venv management
+- [Window Options](/configuration/window-options) - Customize window behavior

@@ -1,0 +1,446 @@
+---
+title: Virtual Environment
+description: Configure automatic virtual environment creation and dependency installation for isolated Python projects
+---
+
+## Overview
+
+The Virtual Environment configuration options enable automatic creation and management of Python virtual environments. This ensures your project dependencies are isolated from system-wide packages and other projects.
+
+## Configuration Options
+
+<ParamField path="usevenv" type="boolean" default="1">
+  Controls whether a virtual environment will be created and used for running Python scripts.
+  
+  **Valid values:**
+  - `1` - Enable virtual environment (recommended)
+  - `0` - Disable virtual environment (use system Python)
+  
+  When enabled, the launcher will:
+  1. Check if the virtual environment already exists
+  2. Create it if it doesn't exist
+  3. Activate the virtual environment before running your script
+  
+  <Tip>
+  Virtual environments are strongly recommended for all Python projects to avoid dependency conflicts.
+  </Tip>
+</ParamField>
+
+<ParamField path="venvname" type="string" default="pyvenv">
+  Specifies the name of the virtual environment directory that will be created in your project folder.
+  
+  **Common values:**
+  - `pyvenv` - Default generic name
+  - `venv` - Common convention
+  - `.venv` - Hidden directory (recommended for version control)
+  - `env` - Another common convention
+  - `project-env` - Project-specific naming
+  
+  The virtual environment will be created at `.\{venvname}\` relative to the launcher location.
+  
+  <Note>
+  If this directory already exists, the launcher will use the existing virtual environment without recreating it.
+  </Note>
+</ParamField>
+
+<ParamField path="installrequirementsfile" type="boolean" default="1">
+  Controls whether dependencies from a requirements file should be automatically installed when creating a new virtual environment.
+  
+  **Valid values:**
+  - `1` - Install requirements automatically
+  - `0` - Skip requirements installation
+  
+  **Important behavior:**
+  - Packages are ONLY installed when creating a NEW virtual environment
+  - Existing virtual environments are NOT updated
+  - This prevents unexpected package updates on every run
+  
+  <Warning>
+  To update packages in an existing virtual environment, delete the `{venvname}` directory and let the launcher recreate it, or manually run `pip install -r {requirementsfile}` inside the activated environment.
+  </Warning>
+</ParamField>
+
+<ParamField path="requirementsfile" type="string" default="requirements.txt">
+  Specifies the path to the requirements file that contains project dependencies.
+  
+  **Valid values:**
+  - `requirements.txt` - Standard convention
+  - `requirements-dev.txt` - Development dependencies
+  - `requirements-prod.txt` - Production dependencies
+  - `%cd%\config\requirements.txt` - Relative path to subdirectory
+  - `C:\shared\requirements.txt` - Absolute path
+  
+  The file should follow the standard pip requirements format:
+  ```
+  package-name==1.0.0
+  another-package>=2.0
+  ```
+  
+  <Note>
+  This setting is only used when `installrequirementsfile` is set to `1`.
+  </Note>
+</ParamField>
+
+## Usage Examples
+
+### Standard Configuration (Recommended)
+
+The default configuration works well for most projects:
+
+```batch
+::Create and use a virtual environment with automatic dependency installation
+set usevenv=1
+set venvname=pyvenv
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+```
+
+This will:
+1. Create `pyvenv\` directory on first run
+2. Install packages from `requirements.txt`
+3. Activate the environment before running your script
+
+### Using .venv (Version Control Friendly)
+
+Many developers prefer hidden virtual environment directories:
+
+```batch
+::Use .venv directory (commonly added to .gitignore)
+set usevenv=1
+set venvname=.venv
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+```
+
+<Tip>
+Add `.venv/` to your `.gitignore` file to keep virtual environments out of version control.
+</Tip>
+
+### Disable Virtual Environment
+
+For simple scripts or when using system-wide packages:
+
+```batch
+::Run directly with system Python (not recommended for projects)
+set usevenv=0
+set venvname=pyvenv
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+```
+
+<Warning>
+Disabling virtual environments can lead to:
+- Dependency conflicts between projects
+- Difficulty reproducing environments
+- System-wide package pollution
+</Warning>
+
+### Manual Dependency Management
+
+Create the virtual environment but don't auto-install dependencies:
+
+```batch
+::Create venv but handle dependencies manually
+set usevenv=1
+set venvname=venv
+set installrequirementsfile=0
+set requirementsfile=requirements.txt
+```
+
+Useful when:
+- You want to manually control when packages are installed
+- You're testing different package versions
+- Your project doesn't use a requirements file
+
+### Multiple Requirements Files
+
+Use different requirements files for different environments:
+
+#### Development
+```batch
+::Development environment with testing tools
+set usevenv=1
+set venvname=venv-dev
+set installrequirementsfile=1
+set requirementsfile=requirements-dev.txt
+```
+
+#### Production
+```batch
+::Production environment with minimal dependencies
+set usevenv=1
+set venvname=venv-prod
+set installrequirementsfile=1
+set requirementsfile=requirements-prod.txt
+```
+
+<Tip>
+Create separate launcher files (e.g., `PythonLauncher-Dev.bat`, `PythonLauncher-Prod.bat`) for different environments.
+</Tip>
+
+### Custom Requirements Location
+
+If your requirements file is in a subdirectory:
+
+```batch
+::Requirements file in config directory
+set usevenv=1
+set venvname=venv
+set installrequirementsfile=1
+set requirementsfile=%cd%\config\requirements.txt
+```
+
+## Virtual Environment Lifecycle
+
+### First Run (New Project)
+
+1. Launcher checks if `{venvname}\` directory exists
+2. Directory doesn't exist → Create new virtual environment
+3. If `installrequirementsfile=1`, install packages from `{requirementsfile}`
+4. Activate virtual environment
+5. Run Python script
+
+### Subsequent Runs (Existing Environment)
+
+1. Launcher checks if `{venvname}\` directory exists
+2. Directory exists → Skip creation and package installation
+3. Activate existing virtual environment
+4. Run Python script
+
+<Note>
+Packages are never automatically updated in existing environments. This prevents unexpected behavior and ensures reproducibility.
+</Note>
+
+### Updating Dependencies
+
+To update packages in an existing virtual environment:
+
+#### Option 1: Recreate Environment
+```batch
+# Delete the virtual environment directory
+rmdir /s /q pyvenv
+
+# Run the launcher again to recreate with updated requirements
+PythonLauncher.bat
+```
+
+#### Option 2: Manual Update
+```batch
+# Activate the environment
+pyvenv\Scripts\activate.bat
+
+# Update packages
+pip install -r requirements.txt --upgrade
+
+# Deactivate
+deactivate
+```
+
+## Requirements File Format
+
+The launcher uses pip to install packages, so your requirements file should follow pip's format:
+
+### Basic Format
+```
+numpy==1.24.3
+pandas>=2.0.0
+requests~=2.31.0
+flask
+```
+
+### With Comments
+```
+# Core dependencies
+numpy==1.24.3
+pandas>=2.0.0
+
+# Web framework
+flask==2.3.2
+requests~=2.31.0
+
+# Development tools
+pytest>=7.0.0
+```
+
+### Advanced Features
+```
+# Install from git repository
+git+https://github.com/user/repo.git@v1.0.0
+
+# Install from local path
+./local-package
+
+# Install with extras
+django[bcrypt]==4.2.0
+
+# Constraints and options
+--index-url https://custom.pypi.org/simple
+-e ./editable-package
+```
+
+<Tip>
+Generate a requirements file from your current environment:
+```batch
+pip freeze > requirements.txt
+```
+</Tip>
+
+## Common Configurations
+
+### Simple Project
+```batch
+set usevenv=1
+set venvname=.venv
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+```
+
+### No Dependencies
+```batch
+set usevenv=1
+set venvname=venv
+set installrequirementsfile=0
+set requirementsfile=requirements.txt
+```
+
+### System-Wide Packages Only
+```batch
+set usevenv=0
+set venvname=venv
+set installrequirementsfile=0
+set requirementsfile=requirements.txt
+```
+
+### Multiple Environments
+```batch
+::Create separate launchers for dev/prod
+::PythonLauncher-Dev.bat:
+set usevenv=1
+set venvname=venv-dev
+set installrequirementsfile=1
+set requirementsfile=requirements-dev.txt
+
+::PythonLauncher-Prod.bat:
+set usevenv=1
+set venvname=venv-prod
+set installrequirementsfile=1
+set requirementsfile=requirements-prod.txt
+```
+
+## Troubleshooting
+
+### Virtual Environment Creation Fails
+
+If venv creation fails:
+
+1. **Check Python installation**: Ensure `python -m venv` works
+2. **Verify permissions**: Ensure you can create directories in the project folder
+3. **Check disk space**: Verify sufficient space for the virtual environment
+4. **Try system Python**: Test with `usevenv=0` to rule out venv issues
+
+### Requirements Installation Fails
+
+If package installation fails:
+
+1. **Check requirements file**: Ensure `{requirementsfile}` exists and is valid
+2. **Test manually**: Try `pip install -r requirements.txt` manually
+3. **Check network**: Ensure you can reach PyPI (https://pypi.org)
+4. **Verify package names**: Check for typos in package names
+5. **Check constraints**: Ensure version constraints are satisfiable
+
+### Packages Not Updating
+
+If new packages in requirements.txt aren't installed:
+
+<Warning>
+This is expected behavior! The launcher only installs packages when CREATING a new virtual environment.
+</Warning>
+
+Solutions:
+1. Delete the `{venvname}` directory and run the launcher again
+2. Manually install: `{venvname}\Scripts\activate.bat && pip install -r requirements.txt`
+
+### Wrong Virtual Environment Used
+
+If the launcher uses the wrong environment:
+
+1. **Check venvname**: Verify `venvname` matches your intended directory
+2. **Check directory**: Look for multiple venv directories in your project
+3. **Recreate**: Delete the wrong directory and let the launcher recreate it
+
+## Best Practices
+
+### Always Use Virtual Environments
+
+Enable `usevenv=1` for all projects to maintain isolation:
+
+```batch
+set usevenv=1
+```
+
+### Use Hidden Directories
+
+Use `.venv` to keep the directory out of sight:
+
+```batch
+set venvname=.venv
+```
+
+Add to `.gitignore`:
+```
+.venv/
+```
+
+### Pin Dependencies
+
+Use exact versions in requirements.txt for reproducibility:
+
+```
+numpy==1.24.3
+pandas==2.0.2
+```
+
+### Document Dependencies
+
+Add comments to requirements.txt explaining why packages are needed:
+
+```
+# Data processing
+numpy==1.24.3
+pandas==2.0.2
+
+# Web scraping
+requests==2.31.0
+beautifulsoup4==4.12.2
+```
+
+### Separate Dev and Prod Requirements
+
+Maintain separate files:
+
+**requirements.txt** (production):
+```
+flask==2.3.2
+requests==2.31.0
+```
+
+**requirements-dev.txt** (development):
+```
+-r requirements.txt
+pytest==7.4.0
+black==23.3.0
+```
+
+### Regular Updates
+
+Periodically recreate virtual environments to get security updates:
+
+```batch
+rmdir /s /q .venv
+PythonLauncher.bat
+```
+
+## Related Configuration
+
+- [Python Setup](/configuration/python-setup) - Configure which Python creates the virtual environment
+- [Overview](/configuration/overview) - General configuration principles

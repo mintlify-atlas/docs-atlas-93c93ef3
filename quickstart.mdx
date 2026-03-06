@@ -1,80 +1,404 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get Windows Python Launcher running in your project in under 2 minutes
 ---
 
-## Get started in three steps
+## Quick Setup
 
-Get your documentation site running locally and make your first customization.
+Get up and running with Windows Python Launcher in three simple steps:
 
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+<Steps>
+  <Step title="Download the Launcher">
+    Copy the `PythonLauncher.bat` file to your Python project's root directory (where your main Python file and `requirements.txt` are located).
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    ```
+    my-project/
+    ├── PythonLauncher.bat  ← Place it here
+    ├── main.py
+    ├── requirements.txt
+    └── ...
+    ```
+  </Step>
+  
+  <Step title="Run the Launcher">
+    Double-click `PythonLauncher.bat` to launch your project.
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+    The launcher will:
+    - ✓ Detect your Python installation
+    - ✓ Create a virtual environment (first run only)
+    - ✓ Install dependencies from `requirements.txt` (first run only)
+    - ✓ Run your Python script
+  </Step>
+  
+  <Step title="Enjoy!">
+    Your Python application is now running. Future runs will be faster since the environment is already set up.
+  </Step>
+</Steps>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+The default configuration works for most projects. If your main file is named `run.py`, `main.py`, or `app.py`, the launcher will find it automatically.
+</Note>
+
+## Basic Usage Examples
+
+### Running Your Project
+
+<Accordion title="Default Behavior">
+Simply double-click `PythonLauncher.bat`. The launcher searches for entry points in this order:
+
+1. `run.py`
+2. `main.py`
+3. `app.py`
+
+The first file found will be executed.
+
+```batch
+# What happens automatically:
+Python 3.11.0
+Creating Virtual environment...
+Installing dependencies...
+Running main.py...
+```
+</Accordion>
+
+<Accordion title="Drag-and-Drop Execution">
+Drag any `.py` file onto `PythonLauncher.bat` to run that specific file.
+
+```
+my-project/
+├── PythonLauncher.bat
+├── main.py
+├── test.py  ← Drag this onto the launcher
+└── utils.py
+```
+
+<Warning>
+Drag-and-drop is disabled when `passarguments=1`. Choose either argument passing or drag-and-drop functionality.
+</Warning>
+</Accordion>
+
+<Accordion title="Command-Line Arguments">
+Enable argument passing to send parameters to your Python script:
+
+```batch title="PythonLauncher.bat"
+set passarguments=1
+```
+
+Then run from command prompt:
+
+```bash
+PythonLauncher.bat --config production --debug
+```
+
+Your Python script receives `--config production --debug` as arguments.
+</Accordion>
+
+### First Run Experience
+
+On the first run, you'll see output similar to this:
+
+```bash
+Python 3.11.0
+Creating Virtual environment...
+Created virtual environment CPython3.11.0.final.0-64 in 2145ms
+Installing dependencies...
+Collecting flask>=2.0.0
+Collecting requests>=2.28.0
+  Using cached requests-2.31.0-py3-none-any.whl
+Installing collected packages: flask, requests
+Successfully installed flask-2.0.0 requests-2.31.0
+
+# Your Python application starts here
+```
+
+### Subsequent Runs
+
+After the first run, startup is nearly instant:
+
+```bash
+Python 3.11.0
+
+# Your Python application starts immediately
+```
+
+The virtual environment and packages are already installed, so the launcher just activates the environment and runs your script.
+
+## Common Configuration
+
+Edit `PythonLauncher.bat` to customize behavior. Here are the most common configurations:
+
+<CodeGroup>
+
+```batch Default Configuration
+::----Configuration----::
+
+::Python settings
+set pythonversion=3.11
+set pythondir=py
+
+::Entry point detection
+set initialfiles="run.py" "main.py" "app.py"
+
+::Virtual environment
+set usevenv=1
+set venvname=pyvenv
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+
+::Window behavior
+set windowname=Python
+set minimizedcmd=0
+set autoclosecmd=0
+
+::Argument handling
+set passarguments=0
+
+::Error handling
+set alertifpynotinstalled=1
+```
+
+```batch Specific Python Version
+::Use Python 3.9 specifically
+set pythonversion=3.9
+set pythondir=py
+
+::Rest of configuration stays the same
+set initialfiles="run.py" "main.py" "app.py"
+set usevenv=1
+set venvname=pyvenv
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+set windowname=Python
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+```batch Portable Python
+::Use a portable Python installation
+set pythonversion=3.11
+set pythondir=%cd%\python-portable\python.exe
+
+::Rest of configuration
+set initialfiles="run.py" "main.py" "app.py"
+set usevenv=1
+set venvname=pyvenv
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+set windowname=Python
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+```batch Custom Entry Point
+::Look for server.py first, then app.py
+set pythonversion=3.11
+set pythondir=py
+set initialfiles="server.py" "app.py"
+
+::Rest of configuration
+set usevenv=1
+set venvname=pyvenv
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+set windowname=Python
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+```batch Background Process
+::Run minimized and close automatically when done
+set pythonversion=3.11
+set pythondir=py
+set initialfiles="run.py" "main.py" "app.py"
+
+::Virtual environment
+set usevenv=1
+set venvname=pyvenv
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+
+::Window behavior for background execution
+set windowname=Background Task
+set minimizedcmd=1
+set autoclosecmd=1
+
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+```batch No Virtual Environment
+::Use system Python directly (not recommended)
+set pythonversion=3.11
+set pythondir=py
+set initialfiles="run.py" "main.py" "app.py"
+
+::Disable virtual environment
+set usevenv=0
+set venvname=pyvenv
+set installrequirementsfile=0
+set requirementsfile=requirements.txt
+
+set windowname=Python
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+</CodeGroup>
+
+## Configuration Reference
+
+All configuration is done through variables at the top of `PythonLauncher.bat`:
+
+### Python Settings
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `pythonversion` | `3.11` | Python version to use with the `py` launcher. Ignored if `pythondir` is not `py` or `py.exe` |
+| `pythondir` | `py` | Path or command for Python executable. Use `%cd%\path\to\python.exe` for relative paths |
+
+<Note>
+The `py` launcher is the recommended option. It comes with Python 3.3+ and handles version selection automatically.
+</Note>
+
+### Entry Point Detection
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `initialfiles` | `"run.py" "main.py" "app.py"` | List of files to search for. First match is executed. Follow the quote structure to add more |
+
+**Example:** To prioritize `server.py`, then `app.py`:
+```batch
+set initialfiles="server.py" "app.py" "main.py"
+```
+
+### Virtual Environment
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `usevenv` | `1` | Create and use a virtual environment (`1` = enabled, `0` = disabled) |
+| `venvname` | `pyvenv` | Name of the virtual environment directory |
+| `installrequirementsfile` | `1` | Install `requirements.txt` when creating venv (`1` = enabled, `0` = disabled) |
+| `requirementsfile` | `requirements.txt` | Path to the requirements file |
+
+<Warning>
+Dependencies are only installed when the virtual environment is **first created**. To update packages, delete the venv folder (e.g., `pyvenv`) and run the launcher again.
+</Warning>
+
+### Window Behavior
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `windowname` | `Python` | Title displayed in the command prompt window |
+| `minimizedcmd` | `0` | Start command prompt minimized (`1` = yes, `0` = no) |
+| `autoclosecmd` | `0` | Close window when Python script finishes (`1` = yes, `0` = no) |
+
+### Advanced Options
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `passarguments` | `0` | Pass command-line arguments to Python script (`1` = yes, `0` = no). **Disables drag-and-drop!** |
+| `alertifpynotinstalled` | `1` | Alert and open Python download page if not installed (`1` = yes, `0` = no) |
+
+## Troubleshooting
+
+<Accordion title="Python Not Found">
+**Symptom:** Launcher exits immediately or shows "Python is not recognized"
+
+**Solution:**
+1. Check if Python is installed: Open Command Prompt and run `py -V`
+2. If not installed, run the launcher with `alertifpynotinstalled=1` to automatically open the download page
+3. Alternatively, download Python from [python.org/downloads](https://www.python.org/downloads/)
+4. During installation, check "Add Python to PATH"
+</Accordion>
+
+<Accordion title="Wrong Python Version">
+**Symptom:** The launcher uses a different Python version than expected
+
+**Solution:**
+Update the `pythonversion` variable:
+
+```batch
+set pythonversion=3.11
+set pythondir=py
+```
+
+Verify available versions:
+```bash
+py --list
+```
+</Accordion>
+
+<Accordion title="Virtual Environment Already Exists">
+**Symptom:** Dependencies aren't updating after modifying `requirements.txt`
+
+**Solution:**
+The launcher only installs dependencies when **creating** the venv. To update:
+
+1. Delete the virtual environment folder (default: `pyvenv`)
+2. Run the launcher again to recreate it with new dependencies
+
+```bash
+# From command prompt in your project directory
+rmdir /s /q pyvenv
+PythonLauncher.bat
+```
+</Accordion>
+
+<Accordion title="No Entry Point Found">
+**Symptom:** Launcher opens a Python shell instead of running your script
+
+**Solution:**
+Your main file name doesn't match the default list. Either:
+
+1. **Rename your file** to `run.py`, `main.py`, or `app.py`
+2. **Update `initialfiles`** in the launcher:
+
+```batch
+# If your main file is named server.py
+set initialfiles="server.py" "run.py" "main.py" "app.py"
+```
+</Accordion>
+
+<Accordion title="Drag-and-Drop Not Working">
+**Symptom:** Dragging a `.py` file onto the launcher doesn't run it
+
+**Solution:**
+Check if argument passing is enabled:
+
+```batch
+set passarguments=0  # Must be 0 for drag-and-drop to work
+```
+
+You can't use both features simultaneously. Choose one based on your needs.
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration Guide" icon="gear" href="/configuration/overview">
+    Learn about all configuration options in detail
+  </Card>
+  <Card title="Examples" icon="code" href="/advanced/examples">
+    See real-world usage examples and templates
+  </Card>
+  <Card title="Usage Guide" icon="play" href="/usage/running-scripts">
+    Learn different ways to run your Python scripts
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/advanced/troubleshooting">
+    Solutions to common problems
+  </Card>
+</CardGroup>
+
+---
+
+<Note>
+**Need Help?** Check the [Introduction](/introduction) for an overview of features, or dive into the [Configuration Guide](/configuration/overview) for detailed customization options.
 </Note>

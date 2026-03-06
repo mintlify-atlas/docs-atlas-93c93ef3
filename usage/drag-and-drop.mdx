@@ -1,0 +1,280 @@
+---
+title: Drag and Drop
+description: Run Python scripts by dragging and dropping them onto the launcher
+---
+
+Drag and drop functionality allows you to quickly run any Python file by dragging it onto the `PythonLauncher.bat` file. This is particularly useful for testing individual scripts or running utilities.
+
+## How Drag and Drop Works
+
+When you drag a file onto a batch script in Windows, the file path is passed as the first argument (`%1`) to the script.
+
+<Steps>
+  <Step title="Select your Python file">
+    Find the `.py` file you want to run in Windows Explorer
+  </Step>
+  
+  <Step title="Drag onto launcher">
+    Click and drag the file onto `PythonLauncher.bat`
+  </Step>
+  
+  <Step title="Launcher executes the file">
+    The launcher receives the file path and runs it in the configured environment
+  </Step>
+</Steps>
+
+## Configuration Requirements
+
+<Warning>
+Drag and drop **only works** when `passarguments=0`. This is a critical limitation.
+</Warning>
+
+**Correct configuration for drag and drop:**
+
+```batch
+set passarguments=0
+```
+
+**Why this limitation exists:**
+
+The launcher uses the `%~1` parameter to detect if a file was provided. When `passarguments=1`, the launcher passes all arguments to the Python script instead of treating the first argument as a file to run.
+
+### Code Implementation
+
+Here's how the launcher handles drag and drop (from `PythonLauncher.bat:147-165`):
+
+```batch
+if !passarguments!==1 (
+    rem Run a file with arguments.
+    rem ... handles initial files with arguments ...
+) else (
+    if "%~1"=="" (
+        rem No argument provided - run initial file
+        rem ...
+    ) else (
+        rem An argument has been provided. Run that file.
+        set command=start %min% "%windowname%" cmd /k "!venvcmd! & %pythondir% %pycmd% %1 %minexit%"
+        goto :runFile
+    )
+)
+```
+
+When `passarguments=0` and an argument is provided (`%~1` is not empty), the launcher treats it as a file path and executes it.
+
+## Usage Examples
+
+### Example 1: Running a Utility Script
+
+You have a project with multiple utility scripts:
+
+```
+project/
+├── PythonLauncher.bat
+├── main.py
+├── utils/
+│   ├── data_processor.py
+│   ├── file_converter.py
+│   └── backup.py
+└── pyvenv/
+```
+
+**To run `data_processor.py`:**
+
+1. Open `utils/` folder in Windows Explorer
+2. Drag `data_processor.py` onto `PythonLauncher.bat` in the parent folder
+3. The script runs in your virtual environment
+
+**Executed command:**
+
+```batch
+start "Python" cmd /k "pyvenv\Scripts\activate & py -3.11 utils\data_processor.py"
+```
+
+### Example 2: Testing Individual Modules
+
+During development, you want to test a specific module:
+
+```python
+# test_api.py
+import requests
+
+response = requests.get('https://api.example.com/status')
+print(f"API Status: {response.status_code}")
+```
+
+Simply drag `test_api.py` onto the launcher. The script will run in your virtual environment with all dependencies available.
+
+### Example 3: Running Scripts from Subdirectories
+
+The launcher handles file paths correctly, even for nested directories:
+
+```
+project/
+├── PythonLauncher.bat
+├── src/
+│   └── core/
+│       └── engine.py
+```
+
+Dragging `engine.py` onto the launcher will execute:
+
+```batch
+py -3.11 src\core\engine.py
+```
+
+## Virtual Environment Integration
+
+<Tip>
+Dragged files are executed in the configured virtual environment, giving them access to all installed packages.
+</Tip>
+
+When you drag and drop a file:
+
+1. **Virtual environment is activated** (if `usevenv=1`)
+2. **Script runs with access to installed packages**
+3. **Command prompt stays open** to show output (unless `autoclosecmd=1`)
+
+**Full execution flow:**
+
+```batch
+# Step 1: Activate venv
+call pyvenv\Scripts\activate
+
+# Step 2: Run your script
+py -3.11 your_script.py
+```
+
+## When Drag and Drop Doesn't Work
+
+Drag and drop will be **disabled** in these situations:
+
+### 1. Arguments Enabled
+
+```batch
+set passarguments=1  # Disables drag and drop
+```
+
+**Why:** The launcher needs to pass all arguments to the Python script, so it can't treat the first argument as a file path.
+
+**Solution:** Change to `passarguments=0` if you need drag and drop functionality.
+
+### 2. File Path with Spaces and No Quotes
+
+Windows handles this automatically for drag and drop, but if you manually pass a path with spaces:
+
+```batch
+# This will fail
+PythonLauncher.bat C:\My Projects\script.py
+
+# This works
+PythonLauncher.bat "C:\My Projects\script.py"
+```
+
+<Note>
+Drag and drop automatically quotes the file path, so you don't need to worry about spaces in filenames.
+</Note>
+
+## Choosing Between Methods
+
+| Use Case | Best Method | Configuration |
+|----------|-------------|---------------|
+| Quick testing of any script | Drag and drop | `passarguments=0` |
+| Running main app with arguments | Command line | `passarguments=1` |
+| Running main app without arguments | Double-click | Either setting |
+| Testing multiple different scripts | Drag and drop | `passarguments=0` |
+
+## Advanced: Custom Window Behavior
+
+You can customize how the window appears when using drag and drop:
+
+**Minimized execution:**
+
+```batch
+set minimizedcmd=1
+set autoclosecmd=1
+```
+
+Now when you drag and drop a script:
+- Window starts minimized
+- Closes automatically when done
+- Perfect for background tasks
+
+**Custom title:**
+
+```batch
+set windowname=Script Runner
+```
+
+The command prompt will show "Script Runner" in the title bar, helping you identify which window is running your script.
+
+## Common Scenarios
+
+### Running Tests
+
+```
+tests/
+├── test_auth.py
+├── test_database.py
+└── test_api.py
+```
+
+Drag individual test files onto the launcher to run them in isolation.
+
+### Data Processing Scripts
+
+```
+scripts/
+├── import_data.py
+├── export_data.py
+├── clean_data.py
+└── analyze_data.py
+```
+
+Quickly run any data processing script by dragging it onto the launcher.
+
+### Development Utilities
+
+```
+dev/
+├── setup_db.py
+├── seed_data.py
+├── reset_cache.py
+└── generate_docs.py
+```
+
+Run maintenance and setup scripts without typing commands.
+
+## Troubleshooting
+
+### Drag and Drop Does Nothing
+
+**Check your configuration:**
+
+```batch
+set passarguments=0  # Must be 0 for drag and drop
+```
+
+### Script Runs But Can't Find Modules
+
+**Ensure virtual environment is enabled:**
+
+```batch
+set usevenv=1
+set venvname=pyvenv
+```
+
+The script needs to run in the venv to access installed packages.
+
+### Window Closes Immediately
+
+**Check auto-close setting:**
+
+```batch
+set autoclosecmd=0  # Keep window open
+```
+
+With `autoclosecmd=0`, the window stays open so you can see output and errors.
+
+<Tip>
+For debugging, always set `autoclosecmd=0` and `minimizedcmd=0` so you can see what's happening.
+</Tip>

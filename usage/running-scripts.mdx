@@ -1,0 +1,208 @@
+---
+title: Running Scripts
+description: Learn the different ways to run Python scripts using the Windows Python Launcher
+---
+
+The Windows Python Launcher provides multiple methods for running Python scripts, making it flexible for different workflows and use cases.
+
+## Running Methods
+
+There are three primary ways to run Python scripts with the launcher:
+
+### 1. Double-Click Execution
+
+The simplest method is to double-click the `PythonLauncher.bat` file. The launcher will automatically:
+
+<Steps>
+  <Step title="Check for Python installation">
+    Verify that Python is installed on your system
+  </Step>
+  
+  <Step title="Create virtual environment (if enabled)">
+    Set up a virtual environment based on the `usevenv` configuration
+  </Step>
+  
+  <Step title="Install dependencies">
+    Install packages from `requirements.txt` if configured
+  </Step>
+  
+  <Step title="Auto-detect and run initial file">
+    Search for and execute the first matching initial file from the configured list
+  </Step>
+</Steps>
+
+<Note>
+By default, the launcher looks for these files in order: `run.py`, `main.py`, `app.py`. It will run the first one it finds.
+</Note>
+
+**Example scenario:**
+
+```batch
+# Your project structure
+my-project/
+├── PythonLauncher.bat
+├── main.py
+├── requirements.txt
+└── pyvenv/  (created automatically)
+```
+
+When you double-click `PythonLauncher.bat`, it will:
+- Create the `pyvenv` virtual environment (first run only)
+- Install dependencies from `requirements.txt` (first run only)
+- Run `main.py`
+
+### 2. Drag and Drop Execution
+
+You can drag and drop any Python file onto the launcher to run it directly.
+
+<Warning>
+Drag and drop only works when `passarguments=0` in the configuration. If `passarguments=1`, drag and drop is disabled to allow command-line argument passing.
+</Warning>
+
+**How it works:**
+
+<Steps>
+  <Step title="Drag a Python file">
+    Select any `.py` file and drag it onto `PythonLauncher.bat`
+  </Step>
+  
+  <Step title="Launcher receives file path">
+    The batch script receives the file path as the first argument
+  </Step>
+  
+  <Step title="Script executes">
+    The launcher runs the specified file in the configured environment
+  </Step>
+</Steps>
+
+**Command prompt example:**
+
+```batch
+C:\Projects\my-app> start "Python" cmd /k "pyvenv\Scripts\activate & py -3.11 utils\helper.py"
+```
+
+See [Drag and Drop](/usage/drag-and-drop) for more details.
+
+### 3. Command Line with Arguments
+
+When `passarguments=1`, you can run the launcher from the command line with arguments that will be passed to your Python script.
+
+**Configuration:**
+
+```batch
+set passarguments=1
+```
+
+**Usage:**
+
+```batch
+PythonLauncher.bat --debug --config=production
+```
+
+This will:
+1. Find and run the first matching initial file (e.g., `run.py`)
+2. Pass `--debug --config=production` to the Python script
+
+**Example Python script receiving arguments:**
+
+```python
+import sys
+
+print(f"Arguments received: {sys.argv[1:]}")
+# Output: Arguments received: ['--debug', '--config=production']
+```
+
+See [Arguments](/usage/arguments) for more details.
+
+## Execution Behavior
+
+### Window Management
+
+The launcher provides options to control the command prompt window:
+
+**Minimized Execution:**
+
+```batch
+set minimizedcmd=1  # Starts command prompt minimized
+```
+
+**Auto-Close:**
+
+```batch
+set autoclosecmd=1  # Closes window when script finishes
+```
+
+<Tip>
+Combine `minimizedcmd=1` and `autoclosecmd=1` for background script execution that doesn't leave windows open.
+</Tip>
+
+**Custom Window Title:**
+
+```batch
+set windowname=My Python App
+```
+
+The command prompt window will display "My Python App" in the title bar.
+
+### No Initial File Found
+
+If no initial file is found, the launcher will:
+- Open a Python interactive shell (REPL) if `passarguments=0`
+- Open a Python interactive shell in the configured environment if `passarguments=1` but no initial files exist
+
+**Example output:**
+
+```batch
+C:\Projects\test> py -3.11
+Python 3.11.5 (tags/v3.11.5:...) on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
+```
+
+## Virtual Environment Integration
+
+When running scripts, the launcher automatically:
+
+1. **Activates the virtual environment** (if `usevenv=1`)
+2. **Runs your script** within that environment
+3. **Keeps the window open** for you to see output (unless `autoclosecmd=1`)
+
+**Actual command executed:**
+
+```batch
+cmd /k "pyvenv\Scripts\activate & py -3.11 main.py"
+```
+
+The `/k` flag keeps the command prompt open after execution, allowing you to see errors and output.
+
+## Python Version Selection
+
+The launcher respects your Python version configuration:
+
+```batch
+set pythonversion=3.11
+set pythondir=py
+```
+
+This uses the Windows Python Launcher (`py`) with the `-3.11` flag to target Python 3.11 specifically.
+
+**Alternative - Portable Python:**
+
+```batch
+set pythondir=%cd%\python\python.exe
+```
+
+This uses a portable Python installation in your project directory.
+
+## Quick Reference
+
+| Method | Command | Requirements |
+|--------|---------|-------------|
+| Double-click | Run `PythonLauncher.bat` | Initial file must exist |
+| Drag and drop | Drag `.py` file onto launcher | `passarguments=0` |
+| With arguments | `PythonLauncher.bat --arg1 --arg2` | `passarguments=1` |
+| Direct file | `PythonLauncher.bat script.py` | `passarguments=0` |
+
+<Note>
+The launcher always checks for Python installation first. If Python is not found and `alertifpynotinstalled=1`, it will open the Python download page.
+</Note>

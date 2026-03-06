@@ -1,0 +1,476 @@
+---
+title: Window Options
+description: Customize the command window behavior, appearance, and argument handling for the Python launcher
+---
+
+## Overview
+
+Window Options control how the command window behaves when running your Python scripts. These settings customize the window title, visibility, closing behavior, argument passing, and error handling.
+
+## Configuration Options
+
+<ParamField path="windowname" type="string" default="Python">
+  Sets the title displayed in the command window title bar when running Python scripts.
+  
+  **Common values:**
+  - `Python` - Generic default
+  - `My Project` - Project-specific name
+  - `Development Server` - Descriptive of what's running
+  - `%cd%` - Show current directory path
+  
+  This helps identify windows when running multiple Python scripts simultaneously.
+  
+  <Tip>
+  Use descriptive names when running multiple launchers to easily distinguish between them in the taskbar.
+  </Tip>
+</ParamField>
+
+<ParamField path="minimizedcmd" type="boolean" default="0">
+  Controls whether the command window starts minimized when launching Python scripts.
+  
+  **Valid values:**
+  - `0` - Normal window (default)
+  - `1` - Start minimized
+  
+  Useful for:
+  - Background services or long-running processes
+  - Web servers that don't require console interaction
+  - Scripts where output isn't needed immediately
+  
+  <Note>
+  Even when minimized, the window remains accessible in the taskbar and can be restored to view output or interact with the script.
+  </Note>
+</ParamField>
+
+<ParamField path="autoclosecmd" type="boolean" default="0">
+  Controls whether the command window automatically closes when the Python script finishes executing.
+  
+  **Valid values:**
+  - `0` - Keep window open (default)
+  - `1` - Close automatically
+  
+  **Recommended settings:**
+  - `0` for development: Keep window open to see errors and output
+  - `1` for production: Auto-close for cleaner execution
+  
+  <Warning>
+  When set to `1`, error messages may disappear before you can read them. Use `0` during development to catch errors.
+  </Warning>
+</ParamField>
+
+<ParamField path="passarguments" type="boolean" default="0">
+  Controls whether command-line arguments passed to the launcher are forwarded to the Python script.
+  
+  **Valid values:**
+  - `0` - Don't pass arguments (allows drag-and-drop)
+  - `1` - Pass all arguments to Python script
+  
+  **Important trade-off:**
+  - When `0`: You can drag-and-drop Python files onto the launcher to run them
+  - When `1`: Arguments are passed but drag-and-drop is disabled
+  
+  <Warning>
+  Enabling `passarguments` disables the ability to run Python files by dragging them over the launcher.
+  </Warning>
+</ParamField>
+
+<ParamField path="alertifpynotinstalled" type="boolean" default="1">
+  Controls what happens when Python is not found on the system.
+  
+  **Valid values:**
+  - `1` - Alert user and open Python download page
+  - `0` - Silently abort with error message
+  
+  When enabled (`1`):
+  1. User sees "No python version was found!"
+  2. Message "Opening download page" appears
+  3. Browser opens to https://www.python.org/downloads/
+  4. User must press any key to close the launcher
+  
+  When disabled (`0`):
+  1. User sees error message
+  2. Launcher exits
+  3. No browser window opens
+  
+  <Tip>
+  Keep this enabled (`1`) for user-friendly launchers that will be shared with others who might not have Python installed.
+  </Tip>
+</ParamField>
+
+## Usage Examples
+
+### Development Configuration
+
+Keep window open to see all output and errors:
+
+```batch
+::Development-friendly settings
+set windowname=Dev Server
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+This configuration:
+- Shows a descriptive window title
+- Keeps window visible and open
+- Allows drag-and-drop execution
+- Helps users install Python if missing
+
+### Production/Background Service
+
+Run minimized and auto-close when done:
+
+```batch
+::Background service settings
+set windowname=Background Service
+set minimizedcmd=1
+set autoclosecmd=1
+set passarguments=0
+set alertifpynotinstalled=0
+```
+
+This configuration:
+- Runs minimized to avoid clutter
+- Auto-closes when script finishes
+- Assumes Python is installed (server environment)
+
+<Warning>
+Don't use auto-close during development - you won't see error messages!
+</Warning>
+
+### Command-Line Tool
+
+Accept and forward arguments to Python script:
+
+```batch
+::CLI tool that accepts arguments
+set windowname=Python CLI Tool
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=1
+set alertifpynotinstalled=1
+```
+
+Usage example:
+```batch
+PythonLauncher.bat --input data.txt --output results.txt
+```
+
+The arguments `--input data.txt --output results.txt` are passed to your Python script.
+
+<Note>
+With `passarguments=1`, you cannot drag-and-drop files onto the launcher.
+</Note>
+
+### Web Development Server
+
+Keep visible to monitor server output:
+
+```batch
+::Web server settings
+set windowname=Flask Development Server
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+This keeps the server output visible so you can see:
+- Request logs
+- Error messages
+- Debug information
+
+### Scheduled Task/Automation
+
+Run silently in background:
+
+```batch
+::Automated task settings
+set windowname=Scheduled Backup
+set minimizedcmd=1
+set autoclosecmd=1
+set passarguments=0
+set alertifpynotinstalled=0
+```
+
+Ideal for:
+- Windows Task Scheduler tasks
+- Automated backups
+- Periodic data processing
+
+### User-Friendly Distribution
+
+Help users who might not have Python:
+
+```batch
+::End-user friendly settings
+set windowname=My Application
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+This provides the best experience for non-technical users:
+- Clear window title
+- Visible output
+- Helpful Python installation guidance
+
+## Window Name Customization
+
+You can use various approaches for window titles:
+
+### Static Names
+```batch
+set windowname=My Application
+```
+
+### Project-Specific
+```batch
+set windowname=Customer Data Processor
+```
+
+### Descriptive of Function
+```batch
+set windowname=Flask API Server - Port 5000
+```
+
+### Dynamic (Current Directory)
+```batch
+set windowname=%cd%
+```
+
+This shows the full path to the project directory in the title bar.
+
+<Tip>
+Use descriptive window names when running multiple Python applications simultaneously to easily identify them in the taskbar.
+</Tip>
+
+## Argument Passing Details
+
+### How passarguments Works
+
+When `passarguments=1`, all arguments passed to the launcher are forwarded:
+
+```batch
+PythonLauncher.bat arg1 arg2 arg3
+```
+
+Becomes:
+```batch
+python script.py arg1 arg2 arg3
+```
+
+### Accessing Arguments in Python
+
+```python
+import sys
+
+if __name__ == "__main__":
+    # sys.argv[0] is the script name
+    # sys.argv[1:] are the arguments
+    args = sys.argv[1:]
+    print(f"Received arguments: {args}")
+```
+
+### Drag-and-Drop Limitation
+
+When `passarguments=0`, you can drag a Python file onto the launcher:
+
+1. User drags `my_script.py` onto `PythonLauncher.bat`
+2. Launcher receives `my_script.py` as an argument
+3. Launcher runs `my_script.py` instead of the auto-detected initial file
+
+When `passarguments=1`, this doesn't work because arguments are passed to the Python script, not interpreted by the launcher.
+
+<Note>
+The `initialfiles` configuration (see [Configuration Overview](/configuration/overview)) determines which script runs when no file is dragged onto the launcher.
+</Note>
+
+## Common Configurations
+
+### Development
+```batch
+set windowname=Development
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+### Production
+```batch
+set windowname=Production
+set minimizedcmd=1
+set autoclosecmd=1
+set passarguments=0
+set alertifpynotinstalled=0
+```
+
+### CLI Application
+```batch
+set windowname=CLI Tool
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=1
+set alertifpynotinstalled=1
+```
+
+### Background Service
+```batch
+set windowname=Service
+set minimizedcmd=1
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=0
+```
+
+### Long-Running Task
+```batch
+set windowname=Processing Job
+set minimizedcmd=1
+set autoclosecmd=1
+set passarguments=0
+set alertifpynotinstalled=0
+```
+
+## Troubleshooting
+
+### Window Closes Too Quickly
+
+If the window closes before you can read output:
+
+1. Set `autoclosecmd=0` to keep window open
+2. Run the launcher from a command prompt to see all output
+3. Add `input("Press Enter to continue...")` to your Python script
+
+### Can't See Window
+
+If the window starts minimized but you need to see it:
+
+1. Set `minimizedcmd=0` temporarily
+2. Click the window in the taskbar to restore it
+3. Check for errors in your Python script
+
+### Arguments Not Received
+
+If your Python script doesn't receive arguments:
+
+1. Verify `passarguments=1`
+2. Test with a simple script:
+   ```python
+   import sys
+   print(sys.argv)
+   ```
+3. Check for spaces in arguments (use quotes if needed)
+
+### Drag-and-Drop Doesn't Work
+
+If dragging files onto the launcher doesn't run them:
+
+1. Verify `passarguments=0` (must be disabled)
+2. Ensure the dragged file is a `.py` file
+3. Check file permissions
+
+### Python Not Found Alert Missing
+
+If users don't get help when Python is missing:
+
+1. Set `alertifpynotinstalled=1`
+2. Verify the Python download page URL is accessible
+3. Check that the script can open a browser
+
+## Best Practices
+
+### Development Phase
+
+During development, use settings that maximize visibility:
+
+```batch
+set windowname=Development
+set minimizedcmd=0
+set autoclosecmd=0
+```
+
+This lets you:
+- See all output immediately
+- Read error messages
+- Interact with the console
+
+### Production Deployment
+
+For production, use settings that minimize user interaction:
+
+```batch
+set windowname=Application
+set minimizedcmd=1
+set autoclosecmd=1
+```
+
+### User Distribution
+
+When distributing to end users:
+
+```batch
+set alertifpynotinstalled=1
+```
+
+This provides helpful guidance if Python isn't installed.
+
+### Multiple Launchers
+
+When running multiple scripts, use unique window names:
+
+```batch
+::API Server
+set windowname=API Server - Port 8000
+
+::Worker Process  
+set windowname=Background Worker
+
+::Database Sync
+set windowname=DB Sync Service
+```
+
+### Debugging Issues
+
+When troubleshooting:
+
+```batch
+set windowname=DEBUG MODE
+set minimizedcmd=0
+set autoclosecmd=0
+set alertifpynotinstalled=1
+```
+
+This ensures maximum visibility of what's happening.
+
+### Command-Line Tools
+
+For CLI tools that need arguments:
+
+```batch
+set passarguments=1
+set autoclosecmd=0
+```
+
+Keep window open so users can see the results.
+
+### Automated Scripts
+
+For scripts run by Task Scheduler:
+
+```batch
+set minimizedcmd=1
+set autoclosecmd=1
+set alertifpynotinstalled=0
+```
+
+Assume Python is installed and run silently.
+
+## Related Configuration
+
+- [Configuration Overview](/configuration/overview) - General configuration principles
+- [Python Setup](/configuration/python-setup) - The `alertifpynotinstalled` option relates to Python detection

@@ -1,0 +1,504 @@
+---
+title: 'Troubleshooting'
+description: 'Common issues and solutions for the Windows Python Launcher'
+icon: 'wrench'
+---
+
+## Python Detection Issues
+
+<Accordion title="Error: Python is not recognized as an internal or external command">
+  **Cause:** Python is not installed, not in PATH, or `pythondir` is configured incorrectly.
+  
+  **Solutions:**
+  
+  1. **Check if Python is installed:**
+     ```batch
+     python --version
+     py --version
+     ```
+  
+  2. **Verify `pythondir` configuration:**
+     ```batch
+     rem Default (uses py launcher)
+     set pythondir=py
+     
+     rem If py launcher not available, use direct path
+     set pythondir=python
+     
+     rem Or specify full path
+     set pythondir=C:\Python311\python.exe
+     ```
+  
+  3. **Install Python if missing:**
+     - The launcher automatically opens the Python download page if `alertifpynotinstalled=1`
+     - Download from: https://www.python.org/downloads/
+     - Make sure to check "Add Python to PATH" during installation
+</Accordion>
+
+<Accordion title="Wrong Python version is being used">
+  **Cause:** The `pythonversion` setting only works with the `py` launcher, not direct Python executables.
+  
+  **Solution:**
+  
+  Configure the launcher correctly based on your setup:
+  
+  ```batch
+  rem Using py launcher (pythonversion is respected)
+  set pythondir=py
+  set pythonversion=3.11
+  
+  rem Using direct executable (pythonversion is IGNORED)
+  set pythondir=C:\Python311\python.exe
+  rem pythonversion has no effect here!
+  ```
+  
+  From `PythonLauncher.bat:62-92`, the script only applies version flags when `pythondir` is `py` or `py.exe`.
+</Accordion>
+
+<Accordion title="Python command works in CMD but not in launcher">
+  **Cause:** Environment variables or PATH differences between your interactive shell and batch script execution.
+  
+  **Solution:**
+  
+  Use absolute paths or the `py` launcher:
+  
+  ```batch
+  rem Instead of relying on PATH
+  set pythondir=python
+  
+  rem Use py launcher (more reliable)
+  set pythondir=py
+  
+  rem Or use full path
+  set pythondir=%LOCALAPPDATA%\Programs\Python\Python311\python.exe
+  ```
+</Accordion>
+
+## Virtual Environment Issues
+
+<Accordion title="Virtual environment creation fails">
+  **Cause:** Missing `venv` module, permission issues, or disk space problems.
+  
+  **Diagnostic steps:**
+  
+  1. **Test venv creation manually:**
+     ```batch
+     python -m venv test_venv
+     ```
+  
+  2. **Check if venv module is available:**
+     ```batch
+     python -m venv --help
+     ```
+  
+  3. **Check disk space:**
+     ```batch
+     dir
+     ```
+  
+  **Solutions:**
+  
+  ```batch
+  rem Disable venv if not needed
+  set usevenv=0
+  
+  rem Or ensure Python has venv module installed
+  rem (some Python distributions exclude it)
+  
+  rem Change venv location if permission issue
+  set venvname=.venv
+  ```
+</Accordion>
+
+<Accordion title="Cannot activate virtual environment">
+  **Cause:** Incorrect venv path or the venv wasn't created successfully.
+  
+  **Diagnostic:**
+  
+  Check if the venv exists:
+  ```batch
+  dir pyvenv\Scripts\activate.bat
+  ```
+  
+  **Solution:**
+  
+  From `PythonLauncher.bat:123`, the activation path is constructed as:
+  ```batch
+  %cd%\%venvname%\Scripts\activate
+  ```
+  
+  Ensure:
+  - `venvname` is set correctly (default: `pyvenv`)
+  - The venv was created successfully (check for error messages)
+  - The Scripts folder exists in the venv directory
+  
+  If venv is corrupted, delete it and recreate:
+  ```batch
+  rmdir /s /q pyvenv
+  rem Run launcher again to recreate
+  ```
+</Accordion>
+
+<Accordion title="Virtual environment not isolated from system packages">
+  **Cause:** This is expected behavior. The launcher creates the venv but doesn't use `--system-site-packages` flag.
+  
+  **Verification:**
+  
+  Check which Python is being used:
+  ```batch
+  rem After running launcher
+  where python
+  python -c "import sys; print(sys.prefix)"
+  ```
+  
+  Should show the venv path, not the system Python.
+</Accordion>
+
+## Requirements Installation Issues
+
+<Accordion title="Requirements not being installed">
+  **Cause:** Requirements are only installed during venv creation, not on subsequent runs.
+  
+  **From `PythonLauncher.bat:177-191`:**
+  ```batch
+  if not exist "%venvname%" (
+      echo Creating Virtual environment...
+      %pythondir% %pycmd% -m venv "%venvname%"
+      
+      if "!installrequirementsfile!"=="1" (
+          if exist "%requirementsfile%" (
+              rem Install requirements HERE
+          )
+      )
+  )
+  ```
+  
+  **Solution:**
+  
+  To reinstall requirements:
+  
+  1. **Delete the venv:**
+     ```batch
+     rmdir /s /q pyvenv
+     ```
+  
+  2. **Or install manually:**
+     ```batch
+     pyvenv\Scripts\activate
+     pip install -r requirements.txt
+     ```
+  
+  3. **Or enable requirements installation:**
+     ```batch
+     set installrequirementsfile=1
+     set requirementsfile=requirements.txt
+     ```
+</Accordion>
+
+<Accordion title="pip install fails with SSL errors">
+  **Cause:** Corporate proxy, firewall, or outdated pip/SSL libraries.
+  
+  **Solutions:**
+  
+  1. **Upgrade pip first:**
+     ```batch
+     python -m pip install --upgrade pip
+     ```
+  
+  2. **Use trusted host (less secure):**
+     ```batch
+     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+     ```
+  
+  3. **Configure proxy if needed:**
+     ```batch
+     set HTTP_PROXY=http://proxy.company.com:8080
+     set HTTPS_PROXY=http://proxy.company.com:8080
+     ```
+</Accordion>
+
+<Accordion title="requirements.txt not found">
+  **Cause:** File doesn't exist or path is incorrect.
+  
+  **Solution:**
+  
+  Check the `requirementsfile` path:
+  ```batch
+  rem Default - looks in current directory
+  set requirementsfile=requirements.txt
+  
+  rem Subdirectory
+  set requirementsfile=config\requirements.txt
+  
+  rem Disable if not needed
+  set installrequirementsfile=0
+  ```
+  
+  Verify file exists:
+  ```batch
+  dir requirements.txt
+  ```
+</Accordion>
+
+## Script Execution Issues
+
+<Accordion title="Initial file not found (run.py, main.py, etc.)">
+  **Cause:** None of the configured initial files exist in the current directory.
+  
+  **From `PythonLauncher.bat:17`:**
+  ```batch
+  set initialfiles="run.py" "main.py" "app.py"
+  ```
+  
+  **Solution:**
+  
+  1. **Add your script name to initialfiles:**
+     ```batch
+     set initialfiles="myapp.py" "run.py" "main.py" "app.py"
+     ```
+  
+  2. **Or drag and drop your script onto the launcher** (if `passarguments=0`)
+  
+  3. **Or pass the script as an argument:**
+     ```batch
+     PythonLauncher.bat myapp.py
+     ```
+</Accordion>
+
+<Accordion title="Drag and drop doesn't work">
+  **Cause:** `passarguments` is set to `1`, which disables drag-and-drop in favor of passing arguments to the initial file.
+  
+  **Solution:**
+  
+  ```batch
+  rem Enable drag-and-drop
+  set passarguments=0
+  
+  rem Or to enable passing args to initial file
+  set passarguments=1
+  ```
+  
+  <Warning>
+  You cannot use both drag-and-drop AND pass arguments to initial files. Choose one behavior.
+  </Warning>
+</Accordion>
+
+<Accordion title="Script runs but closes immediately">
+  **Cause:** `autoclosecmd=1` is set, or the script finished execution.
+  
+  **Solution:**
+  
+  ```batch
+  rem Keep window open
+  set autoclosecmd=0
+  
+  rem Or add input() to your Python script
+  input("Press Enter to exit...")
+  ```
+</Accordion>
+
+<Accordion title="Cannot see output / Window is minimized">
+  **Cause:** `minimizedcmd=1` starts the window minimized.
+  
+  **Solution:**
+  
+  ```batch
+  rem Show window normally
+  set minimizedcmd=0
+  ```
+</Accordion>
+
+## Path and Directory Issues
+
+<Accordion title="Relative paths not working">
+  **Cause:** Batch script may be running from a different working directory.
+  
+  **Solution:**
+  
+  Use `%cd%` for relative paths:
+  ```batch
+  rem Wrong
+  set pythondir=python\python.exe
+  
+  rem Correct
+  set pythondir=%cd%\python\python.exe
+  ```
+  
+  Or use `%~dp0` for paths relative to the batch file itself:
+  ```batch
+  set pythondir=%~dp0python\python.exe
+  ```
+</Accordion>
+
+<Accordion title="Spaces in paths causing issues">
+  **Cause:** Paths with spaces need proper quoting.
+  
+  **Solution:**
+  
+  ```batch
+  rem Use quotes for paths with spaces
+  set "pythondir=C:\Program Files\Python311\python.exe"
+  
+  rem Or use short path format
+  set pythondir=C:\Progra~1\Python311\python.exe
+  ```
+</Accordion>
+
+<Accordion title="Network paths not working">
+  **Cause:** UNC paths may have permission or access issues.
+  
+  **Solution:**
+  
+  1. **Map network drive first:**
+     ```batch
+     net use Z: \\server\share
+     set pythondir=Z:\python\python.exe
+     ```
+  
+  2. **Or ensure network access:**
+     ```batch
+     rem Test access
+     dir \\server\share\python
+     ```
+</Accordion>
+
+## Configuration Issues
+
+<Accordion title="Changes to configuration not taking effect">
+  **Cause:** You may be editing the wrong file, or delayed expansion issues.
+  
+  **Solution:**
+  
+  1. **Ensure you're editing the correct `PythonLauncher.bat`**
+  2. **Save the file after editing**
+  3. **Close all CMD windows and run again**
+  4. **Check for syntax errors:**
+     ```batch
+     rem Correct
+     set usevenv=1
+     
+     rem Wrong (no spaces around =)
+     set usevenv = 1
+     ```
+</Accordion>
+
+<Accordion title="Error: The system cannot find the batch label specified">
+  **Cause:** Batch file corruption or syntax error.
+  
+  **Solution:**
+  
+  1. **Check for corrupted labels:**
+     - `:runFile` at line 168
+     - `:createvenv` at line 174
+     - `:eof` return statements
+  
+  2. **Re-download the original `PythonLauncher.bat`**
+  
+  3. **Ensure file encoding is ANSI or UTF-8** (not UTF-16)
+</Accordion>
+
+## Error Code Reference
+
+<Accordion title="Understanding ERRORLEVEL codes">
+  The launcher checks `%ERRORLEVEL%` to detect Python installation status:
+  
+  **From `PythonLauncher.bat:43-59`:**
+  ```batch
+  %pythondir% -V
+  if %ERRORLEVEL% neq 0 (
+      rem Python is NOT installed
+  )
+  ```
+  
+  Common error codes:
+  - `0` = Success (Python found)
+  - `1` = General error (Python not found)
+  - `9009` = Command not recognized
+  
+  **Diagnostic:**
+  ```batch
+  py -V
+  echo %ERRORLEVEL%
+  ```
+</Accordion>
+
+## Advanced Debugging
+
+<Warning>
+For advanced debugging, you can temporarily remove `@echo off` from line 1 of `PythonLauncher.bat` to see all commands being executed.
+</Warning>
+
+### Enable Debug Output
+
+Edit `PythonLauncher.bat` line 1:
+
+```batch
+rem @echo off
+rem Comment out to see all commands
+```
+
+This will show:
+- Which Python executable is being called
+- How venv paths are constructed
+- What commands are being executed
+
+### Manual Testing Steps
+
+<Steps>
+  <Step title="Test Python Detection">
+    ```batch
+    py -V
+    python -V
+    ```
+  </Step>
+  
+  <Step title="Test Venv Creation">
+    ```batch
+    python -m venv test_venv
+    test_venv\Scripts\activate
+    ```
+  </Step>
+  
+  <Step title="Test Requirements Installation">
+    ```batch
+    pip install -r requirements.txt
+    ```
+  </Step>
+  
+  <Step title="Test Script Execution">
+    ```batch
+    python run.py
+    ```
+  </Step>
+</Steps>
+
+## Getting Help
+
+<Tip>
+When reporting issues, include:
+- Windows version
+- Python version (`python --version`)
+- Full error message
+- Your `PythonLauncher.bat` configuration section (lines 6-36)
+- Whether you're using system Python or portable Python
+</Tip>
+
+Common diagnostic commands:
+
+```batch
+rem System info
+ver
+
+rem Python info
+py --version
+python --version
+where python
+
+rem Environment
+echo %PATH%
+echo %PYTHONPATH%
+
+rem File check
+dir requirements.txt
+dir pyvenv\Scripts
+```

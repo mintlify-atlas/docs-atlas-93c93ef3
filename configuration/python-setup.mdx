@@ -1,0 +1,236 @@
+---
+title: Python Setup
+description: Configure which Python interpreter the launcher uses and how it locates Python installations
+---
+
+## Overview
+
+The Python Setup options control which Python interpreter is used to run your scripts. You can use the Windows Python Launcher (`py.exe`), a specific Python installation, or even a portable Python distribution.
+
+## Configuration Options
+
+<ParamField path="pythonversion" type="string" default="3.11">
+  Specifies the Python version to use when `pythondir` is set to `py` or `py.exe`. This parameter is passed to the Windows Python Launcher to select the appropriate installed version.
+  
+  **Valid values:**
+  - `3.11` - Python 3.11.x
+  - `3.10` - Python 3.10.x
+  - `3.9` - Python 3.9.x
+  - `3` - Latest Python 3.x version
+  - `2` - Latest Python 2.x version (if installed)
+  
+  <Note>
+  This setting is ignored if `pythondir` points to a specific Python executable.
+  </Note>
+</ParamField>
+
+<ParamField path="pythondir" type="string" default="py">
+  Defines the Python executable or launcher command to use. This is the most flexible configuration option for Python setup.
+  
+  **Valid values:**
+  - `py` - Use Windows Python Launcher (recommended)
+  - `py.exe` - Explicit Windows Python Launcher path
+  - `python` - Use system PATH Python
+  - `python.exe` - Explicit system Python
+  - `C:\Python311\python.exe` - Absolute path to specific installation
+  - `%cd%\python\python.exe` - Relative path to portable Python
+  
+  <Tip>
+  Using `py` is recommended as it works with the `pythonversion` setting to automatically select the correct Python version.
+  </Tip>
+</ParamField>
+
+## Usage Examples
+
+### Using Windows Python Launcher (Recommended)
+
+The Windows Python Launcher (`py.exe`) is the recommended approach as it allows easy version switching:
+
+```batch
+::Use Python 3.11 via Windows Python Launcher
+set pythonversion=3.11
+set pythondir=py
+```
+
+This configuration will execute Python scripts using the command:
+```batch
+py -3.11 script.py
+```
+
+### Using a Specific Python Installation
+
+If you need to use a specific Python installation, provide the full path:
+
+```batch
+::Ignore pythonversion and use specific installation
+set pythonversion=3.11
+set pythondir=C:\Python311\python.exe
+```
+
+<Warning>
+When `pythondir` points to a specific `python.exe`, the `pythonversion` setting is ignored.
+</Warning>
+
+### Using Portable Python
+
+For portable Python distributions that live within your project directory:
+
+```batch
+::Use portable Python in project subdirectory
+set pythonversion=3.11
+set pythondir=%cd%\portable-python\python.exe
+```
+
+The `%cd%` variable represents the current directory where the batch file is located.
+
+<Tip>
+Portable Python is useful for:
+- Projects that need to be self-contained
+- Environments without admin rights
+- Ensuring consistent Python versions across machines
+</Tip>
+
+### Using System PATH Python
+
+If you have Python in your system PATH:
+
+```batch
+::Use whatever python.exe is in PATH
+set pythonversion=3.11
+set pythondir=python
+```
+
+## Version Selection Details
+
+### How pythonversion Works
+
+When using `py` or `py.exe` as the `pythondir`, the launcher uses the Windows Python Launcher's version selection:
+
+```batch
+py -3.11    # Runs Python 3.11.x (latest patch version)
+py -3.10    # Runs Python 3.10.x
+py -3       # Runs latest Python 3.x
+```
+
+### Checking Installed Versions
+
+To see which Python versions are available on your system:
+
+```batch
+py --list
+```
+
+Output example:
+```
+ -3.11-64 *
+ -3.10-64
+ -3.9-64
+```
+
+The asterisk indicates the default version.
+
+## Common Configurations
+
+### Latest Python 3
+
+```batch
+set pythonversion=3
+set pythondir=py
+```
+
+Uses the latest Python 3.x version installed on the system.
+
+### Specific Minor Version
+
+```batch
+set pythonversion=3.11
+set pythondir=py
+```
+
+Uses the latest Python 3.11.x patch version.
+
+### Development Environment
+
+```batch
+::Use bleeding-edge Python for testing
+set pythonversion=3.13
+set pythondir=py
+```
+
+### Legacy Project
+
+```batch
+::Maintain compatibility with older Python
+set pythonversion=3.8
+set pythondir=py
+```
+
+## Troubleshooting
+
+### Python Not Found
+
+If you see "No python version was found!", check:
+
+1. **Is Python installed?** Run `py --version` in a command prompt
+2. **Is the version available?** Run `py --list` to see installed versions
+3. **Is the path correct?** Verify absolute paths exist
+4. **Is py.exe available?** The Windows Python Launcher comes with Python 3.3+
+
+### Wrong Python Version Running
+
+If the wrong version executes:
+
+1. Verify `pythondir` is set to `py` or `py.exe`
+2. Check that `pythonversion` matches an installed version
+3. Run `py --list` to confirm the version is available
+4. Try using the full version number (e.g., `3.11.5` instead of `3.11`)
+
+### Portable Python Issues
+
+If portable Python fails to run:
+
+1. Verify the path is correct (check for typos)
+2. Ensure `python.exe` exists at the specified location
+3. Use absolute paths if relative paths aren't working
+4. Check that the portable Python distribution is complete
+
+<Note>
+The `alertifpynotinstalled` configuration option (see [Window Options](/configuration/window-options)) controls whether users are directed to download Python if it's not found.
+</Note>
+
+## Best Practices
+
+### Use Windows Python Launcher
+
+When possible, use `py` with `pythonversion` rather than direct paths. This provides:
+
+- Easy version switching
+- Better compatibility across machines
+- Automatic selection of latest patch versions
+
+### Document Version Requirements
+
+Add comments explaining why specific versions are required:
+
+```batch
+::TensorFlow 2.12 requires Python 3.8-3.11
+set pythonversion=3.11
+set pythondir=py
+```
+
+### Test Multiple Versions
+
+If your project should support multiple Python versions, create separate launcher files:
+
+- `PythonLauncher-3.11.bat`
+- `PythonLauncher-3.10.bat`
+- `PythonLauncher-3.9.bat`
+
+### Team Consistency
+
+For team projects, commit the launcher configuration to version control and document the required Python version in your README.
+
+## Related Configuration
+
+- [Virtual Environment](/configuration/virtual-environment) - Automatic venv creation works with any Python setup
+- [Window Options](/configuration/window-options) - Control what happens if Python is not found

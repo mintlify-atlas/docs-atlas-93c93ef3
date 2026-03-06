@@ -1,0 +1,583 @@
+---
+title: 'Configuration Examples'
+description: 'Real-world configuration examples for different use cases'
+icon: 'code'
+---
+
+## Basic Development Setup
+
+Standard configuration for local Python development with automatic environment setup.
+
+```batch
+::Set the python version to use.
+set pythonversion=3.11
+::Use the py launcher (default)
+set pythondir=py
+
+::Window title
+set windowname=Python Development
+
+::Auto-detect run.py, main.py, or app.py
+set initialfiles="run.py" "main.py" "app.py"
+
+::Enable virtual environment
+set usevenv=1
+set venvname=pyvenv
+
+::Install requirements.txt on venv creation
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+
+::Keep window visible for debugging
+set minimizedcmd=0
+set autoclosecmd=0
+
+::Disable argument passing (enable drag-and-drop)
+set passarguments=0
+
+::Alert if Python not installed
+set alertifpynotinstalled=1
+```
+
+<Tip>
+This configuration is ideal for developers who want automatic dependency management and environment isolation.
+</Tip>
+
+## Portable Application Distribution
+
+Configuration for distributing a self-contained application with portable Python.
+
+```batch
+::Use portable Python included with distribution
+set pythonversion=3.11
+set pythondir=%cd%\runtime\python\python.exe
+
+::Application name
+set windowname=MyApplication
+
+::Launch the main application
+set initialfiles="app\main.py" "launcher.py"
+
+::Don't use venv (dependencies pre-installed)
+set usevenv=0
+set venvname=pyvenv
+
+::No requirements installation needed
+set installrequirementsfile=0
+set requirementsfile=requirements.txt
+
+::Clean user experience
+set minimizedcmd=1
+set autoclosecmd=1
+
+::Don't pass arguments
+set passarguments=0
+
+::Don't alert (portable Python included)
+set alertifpynotinstalled=0
+```
+
+**Directory structure:**
+```
+MyApp/
+├── MyApp.bat (renamed PythonLauncher.bat)
+├── runtime/
+│   └── python/
+│       ├── python.exe
+│       ├── python311.dll
+│       └── Lib/
+├── app/
+│   ├── main.py
+│   └── modules/
+└── README.txt
+```
+
+<Warning>
+When distributing with portable Python, ensure all dependencies are pre-installed in the portable Python's site-packages directory.
+</Warning>
+
+## Web Development Server
+
+Configuration for running a local development web server (Flask, Django, FastAPI).
+
+```batch
+::Python version
+set pythonversion=3.11
+set pythondir=py
+
+::Server window name
+set windowname=Development Server
+
+::Check for framework-specific files
+set initialfiles="manage.py" "app.py" "main.py" "run.py"
+
+::Use virtual environment for dependencies
+set usevenv=1
+set venvname=.venv
+
+::Auto-install requirements
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+
+::Keep window visible to see server logs
+set minimizedcmd=0
+set autoclosecmd=0
+
+::Allow passing arguments (e.g., runserver 0.0.0.0:8000)
+set passarguments=1
+
+::Alert if Python missing
+set alertifpynotinstalled=1
+```
+
+<Tip>
+With `passarguments=1`, you can pass server arguments:
+```batch
+PythonLauncher.bat runserver 0.0.0.0:8000
+```
+</Tip>
+
+## Data Science / Jupyter Notebook
+
+Configuration for launching Jupyter notebooks or data analysis scripts.
+
+```batch
+::Python version
+set pythonversion=3.11
+set pythondir=py
+
+::Descriptive name
+set windowname=Data Analysis
+
+::Look for notebook launcher or analysis scripts
+set initialfiles="start_notebook.py" "analysis.py" "main.py"
+
+::Use venv to isolate data science packages
+set usevenv=1
+set venvname=datavenv
+
+::Install heavy requirements (numpy, pandas, jupyter, etc.)
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+
+::Keep window open to see notebook server URL
+set minimizedcmd=0
+set autoclosecmd=0
+
+::Enable arguments for notebook options
+set passarguments=1
+
+::Alert if Python missing
+set alertifpynotinstalled=1
+```
+
+**Example `start_notebook.py`:**
+```python
+import subprocess
+import sys
+
+subprocess.run([sys.executable, "-m", "jupyter", "notebook"])
+```
+
+## Testing / CI Environment
+
+Configuration for running automated tests.
+
+```batch
+::Python version
+set pythonversion=3.11
+set pythondir=py
+
+::Test environment
+set windowname=Test Runner
+
+::Run test suite
+set initialfiles="run_tests.py" "test.py" "pytest_runner.py"
+
+::Use separate test venv
+set usevenv=1
+set venvname=test_venv
+
+::Install test requirements
+set installrequirementsfile=1
+set requirementsfile=requirements-test.txt
+
+::Normal window for test output
+set minimizedcmd=0
+
+::Auto-close on success (or keep open to see errors)
+set autoclosecmd=0
+
+::Pass test arguments (e.g., specific test files)
+set passarguments=1
+
+::Alert if Python missing
+set alertifpynotinstalled=1
+```
+
+<Tip>
+Run specific tests:
+```batch
+PythonLauncher.bat -m pytest tests/test_api.py -v
+```
+</Tip>
+
+## Multiple Python Versions
+
+Configuration for testing across different Python versions (create multiple launcher files).
+
+### PythonLauncher-3.11.bat
+```batch
+set pythonversion=3.11
+set pythondir=py
+set windowname=Python 3.11 Test
+set initialfiles="run.py" "main.py"
+set usevenv=1
+set venvname=venv311
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+### PythonLauncher-3.12.bat
+```batch
+set pythonversion=3.12
+set pythondir=py
+set windowname=Python 3.12 Test
+set initialfiles="run.py" "main.py"
+set usevenv=1
+set venvname=venv312
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+<Tip>
+Use different `venvname` values to maintain separate environments for each Python version.
+</Tip>
+
+## Shared Python for Multiple Projects
+
+Using a centralized portable Python for multiple projects.
+
+**Directory structure:**
+```
+Development/
+├── python-3.11-portable/
+│   └── python.exe
+├── project1/
+│   ├── PythonLauncher.bat
+│   └── main.py
+├── project2/
+│   ├── PythonLauncher.bat
+│   └── app.py
+└── project3/
+    ├── PythonLauncher.bat
+    └── run.py
+```
+
+**Configuration (all projects):**
+```batch
+::Point to shared portable Python
+set pythonversion=3.11
+set pythondir=%cd%\..\python-3.11-portable\python.exe
+
+set windowname=Project Development
+
+set initialfiles="run.py" "main.py" "app.py"
+
+::Each project has its own venv
+set usevenv=1
+set venvname=.venv
+
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+<Warning>
+`pythonversion` is ignored when using a direct Python executable path. The version is determined by the portable Python itself.
+</Warning>
+
+## Minimal Configuration (No Venv)
+
+Minimal setup without virtual environment for simple scripts.
+
+```batch
+::Use system Python
+set pythonversion=3.11
+set pythondir=py
+
+set windowname=Python Script
+
+set initialfiles="script.py" "run.py" "main.py"
+
+::Disable venv
+set usevenv=0
+set venvname=pyvenv
+
+::No requirements
+set installrequirementsfile=0
+set requirementsfile=requirements.txt
+
+::Normal window
+set minimizedcmd=0
+set autoclosecmd=0
+
+::Enable drag-and-drop
+set passarguments=0
+
+set alertifpynotinstalled=1
+```
+
+<Tip>
+Ideal for quick scripts without dependencies or when using system-wide installed packages.
+</Tip>
+
+## GUI Application
+
+Configuration for launching GUI applications (tkinter, PyQt, etc.).
+
+```batch
+::Python version
+set pythonversion=3.11
+set pythondir=py
+
+::Application name
+set windowname=MyGUIApp
+
+::GUI entry point
+set initialfiles="gui.py" "app.py" "main.py"
+
+::Use venv for GUI dependencies
+set usevenv=1
+set venvname=guivenv
+
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+
+::Start minimized (GUI opens anyway)
+set minimizedcmd=1
+
+::Auto-close CMD after launching GUI
+set autoclosecmd=1
+
+::No arguments
+set passarguments=0
+
+set alertifpynotinstalled=1
+```
+
+<Tip>
+With `minimizedcmd=1` and `autoclosecmd=1`, the console window disappears after launching the GUI, providing a cleaner user experience.
+</Tip>
+
+## Development with Custom Requirements
+
+Configuration with non-standard requirements file location.
+
+```batch
+::Python version
+set pythonversion=3.11
+set pythondir=py
+
+set windowname=Development
+
+set initialfiles="run.py" "main.py"
+
+set usevenv=1
+set venvname=devenv
+
+::Custom requirements location
+set installrequirementsfile=1
+set requirementsfile=config\requirements-dev.txt
+
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+<Tip>
+You can use different requirements files for different environments:
+- `requirements.txt` - production
+- `requirements-dev.txt` - development
+- `requirements-test.txt` - testing
+</Tip>
+
+## Network/Shared Drive Setup
+
+Configuration for projects on network drives.
+
+```batch
+::Use local Python installation
+set pythonversion=3.11
+set pythondir=py
+
+set windowname=Network Project
+
+::Standard initial files
+set initialfiles="run.py" "main.py" "app.py"
+
+::Create venv locally (faster than network drive)
+set usevenv=1
+set venvname=%TEMP%\project_venv
+
+set installrequirementsfile=1
+set requirementsfile=requirements.txt
+
+set minimizedcmd=0
+set autoclosecmd=0
+set passarguments=0
+set alertifpynotinstalled=1
+```
+
+<Warning>
+Creating venv on network drives can be slow. Consider using `%TEMP%` or `%LOCALAPPDATA%` for better performance.
+</Warning>
+
+## Production Deployment (Windows Server)
+
+Configuration for production environment on Windows Server.
+
+```batch
+::Specific Python version
+set pythonversion=3.11
+set pythondir=C:\Python311\python.exe
+
+set windowname=Production Application
+
+::Production entry point
+set initialfiles="wsgi.py" "main.py" "app.py"
+
+::Use production venv
+set usevenv=1
+set venvname=prod_venv
+
+::Don't auto-install (pre-installed manually)
+set installrequirementsfile=0
+set requirementsfile=requirements.txt
+
+::Keep visible for monitoring
+set minimizedcmd=0
+
+::Don't auto-close (keep running)
+set autoclosecmd=0
+
+::Allow passing config arguments
+set passarguments=1
+
+::Don't alert (Python pre-installed)
+set alertifpynotinstalled=0
+```
+
+<Warning>
+For production, use absolute paths and disable automatic requirements installation to ensure consistent deployments.
+</Warning>
+
+## Quick Script Runner
+
+Configuration optimized for quickly running any Python file via drag-and-drop.
+
+```batch
+::System Python
+set pythonversion=3.11
+set pythondir=py
+
+set windowname=Python Quick Run
+
+::No initial files (always drag-and-drop)
+set initialfiles=""
+
+::No venv for quick runs
+set usevenv=0
+set venvname=pyvenv
+
+set installrequirementsfile=0
+set requirementsfile=requirements.txt
+
+set minimizedcmd=0
+
+::Keep open to see output
+set autoclosecmd=0
+
+::Enable drag-and-drop
+set passarguments=0
+
+set alertifpynotinstalled=1
+```
+
+<Tip>
+Rename to something like `QuickPython.bat` and pin to taskbar for easy script execution.
+</Tip>
+
+## Comparing Configurations
+
+| Use Case | usevenv | installrequirements | minimizedcmd | autoclosecmd | passarguments |
+|----------|---------|---------------------|--------------|--------------|---------------|
+| Development | 1 | 1 | 0 | 0 | 0 |
+| Distribution | 0 | 0 | 1 | 1 | 0 |
+| Web Server | 1 | 1 | 0 | 0 | 1 |
+| Testing | 1 | 1 | 0 | 0 | 1 |
+| GUI App | 1 | 1 | 1 | 1 | 0 |
+| Quick Run | 0 | 0 | 0 | 0 | 0 |
+| Production | 1 | 0 | 0 | 0 | 1 |
+
+## Custom Scenarios
+
+<Steps>
+  <Step title="Identify Your Needs">
+    - Do you need dependency isolation? (venv)
+    - Will users have Python installed? (portable vs system)
+    - Do you need to pass arguments? (passarguments)
+    - Should the window be visible? (minimized/autoclose)
+  </Step>
+  
+  <Step title="Choose Base Configuration">
+    Start with the example closest to your use case
+  </Step>
+  
+  <Step title="Customize Settings">
+    Modify the configuration variables to match your requirements
+  </Step>
+  
+  <Step title="Test Thoroughly">
+    Test on a clean system to ensure all dependencies and paths work correctly
+  </Step>
+</Steps>
+
+## Configuration Best Practices
+
+<Tip>
+**Document your configuration** - Add comments explaining why specific settings are chosen:
+
+```batch
+::Using venv because project requires specific package versions
+set usevenv=1
+
+::Don't auto-close so users can see error messages
+set autoclosecmd=0
+```
+</Tip>
+
+<Tip>
+**Version control** - Commit `PythonLauncher.bat` with your project so all developers use the same configuration.
+</Tip>
+
+<Tip>
+**Test on clean systems** - Test your configuration on a system without Python or with different Python versions to ensure it works for all users.
+</Tip>
+
+<Warning>
+Avoid hardcoding absolute paths unless necessary. Use `%cd%` for portable configurations.
+</Warning>

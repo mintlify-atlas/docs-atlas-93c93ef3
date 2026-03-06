@@ -1,97 +1,119 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Windows Python Launcher"
+description: "Customizable Windows batch script to launch Python projects and files with automatic environment setup and dependency management"
 ---
 
-## Setting up
+## Welcome to Windows Python Launcher
 
-Get your documentation site up and running in minutes.
+A powerful yet simple batch script that streamlines Python project execution on Windows. Perfect for testing and distributing Python projects without the complexity of compilation or packaging.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
+<CardGroup cols={2}>
   <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
   >
-    Edit your docs locally and preview them in real time.
+    Get up and running in minutes with our step-by-step guide
   </Card>
   <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
+    title="Configuration Guide"
+    icon="gear"
+    href="/configuration/overview"
   >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+    Customize the launcher to fit your project's needs
   </Card>
   <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
+    title="Usage Examples"
     icon="code"
-    href="/essentials/code"
+    href="/usage/running-scripts"
   >
-    Add sample code to demonstrate how to use your product.
+    Learn different ways to run your Python scripts
   </Card>
   <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
+    title="Troubleshooting"
+    icon="wrench"
+    href="/advanced/troubleshooting"
   >
-    Display images and other media.
+    Solutions to common issues and problems
   </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Need inspiration?
+## Key Features
+
+<CardGroup cols={2}>
+  <Card
+    title="Python Detection"
+    icon="python"
+  >
+    Automatically detects installed Python versions and supports the py launcher
+  </Card>
+  <Card
+    title="Virtual Environments"
+    icon="box"
+  >
+    Optional automatic venv creation and activation for isolated dependencies
+  </Card>
+  <Card
+    title="Auto Dependencies"
+    icon="download"
+  >
+    Automatically installs requirements.txt when creating virtual environments
+  </Card>
+  <Card
+    title="Smart File Detection"
+    icon="file-code"
+  >
+    Auto-detects and runs common entry points like run.py, main.py, and app.py
+  </Card>
+  <Card
+    title="Drag & Drop"
+    icon="hand-pointer"
+  >
+    Simply drag and drop Python files onto the script to execute them
+  </Card>
+  <Card
+    title="Portable Support"
+    icon="laptop-code"
+  >
+    Works with portable Python installations for maximum flexibility
+  </Card>
+</CardGroup>
+
+## Perfect For
+
+<AccordionGroup>
+  <Accordion title="Developers" icon="user-gear">
+    Quickly test Python projects without manual environment setup. Simply run the batch file and let it handle Python detection, venv creation, and dependency installation.
+  </Accordion>
+  <Accordion title="Project Distribution" icon="share-nodes">
+    Include the launcher with your Python project to give users a one-click way to run your application without needing to understand virtual environments or package management.
+  </Accordion>
+  <Accordion title="Multiple Configurations" icon="clone">
+    Create multiple copies of the launcher with different configurations for various projects or testing scenarios. Each launcher can have its own Python version, venv name, and settings.
+  </Accordion>
+  <Accordion title="Educational Use" icon="graduation-cap">
+    Perfect for students and educators who need a simple way to run Python code without dealing with command-line complexity or environment management.
+  </Accordion>
+</AccordionGroup>
+
+## Getting Started
+
+<Steps>
+  <Step title="Download the Script">
+    Download `PythonLauncher.bat` from the [GitHub repository](https://github.com/Scratchaker/Windows-Python-Launcher)
+  </Step>
+  <Step title="Configure for Your Project">
+    Edit the configuration variables at the top of the batch file to customize behavior
+  </Step>
+  <Step title="Run Your Python Code">
+    Double-click the launcher or drag-and-drop a Python file onto it
+  </Step>
+</Steps>
 
 <Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
+  title="View on GitHub"
+  icon="github"
+  href="https://github.com/Scratchaker/Windows-Python-Launcher"
 >
-  Browse our showcase of exceptional documentation sites.
+  Star the repository and contribute to the project
 </Card>

@@ -1,0 +1,410 @@
+---
+title: Command-Line Arguments
+description: Pass command-line arguments to your Python scripts using the launcher
+---
+
+The Windows Python Launcher can pass command-line arguments from the batch script to your Python scripts, enabling flexible script execution with runtime parameters.
+
+## The passarguments Configuration
+
+The `passarguments` setting controls whether arguments passed to the launcher are forwarded to your Python script.
+
+```batch
+# Enable argument passing
+set passarguments=1
+
+# Disable argument passing (enables drag and drop)
+set passarguments=0
+```
+
+### How It Works
+
+When `passarguments=1`:
+
+<Steps>
+  <Step title="Run launcher with arguments">
+    Execute `PythonLauncher.bat --arg1 --arg2 value`
+  </Step>
+  
+  <Step title="Launcher finds initial file">
+    Searches for and finds the first matching initial file (e.g., `run.py`)
+  </Step>
+  
+  <Step title="Arguments passed to Python">
+    All arguments are forwarded: `py -3.11 run.py --arg1 --arg2 value`
+  </Step>
+  
+  <Step title="Python script receives arguments">
+    Access arguments via `sys.argv` or argument parsing libraries
+  </Step>
+</Steps>
+
+## Configuration Trade-off
+
+<Warning>
+Enabling `passarguments=1` disables drag and drop functionality. You must choose one or the other.
+</Warning>
+
+| Setting | Drag and Drop | Command-Line Arguments |
+|---------|---------------|------------------------|
+| `passarguments=0` | Enabled | Disabled |
+| `passarguments=1` | Disabled | Enabled |
+
+**Why this limitation exists:**
+
+The launcher uses the first argument (`%1`) to detect if a file was dragged onto it. When `passarguments=1`, all arguments are passed to the Python script instead, so the launcher can't distinguish between a dragged file and a command-line argument.
+
+### Code Implementation
+
+From `PythonLauncher.bat:135-146`:
+
+```batch
+if !passarguments!==1 (
+    rem Run a file with arguments.
+    set foundFile=
+    for %%f in (%initialfiles%) do (
+        if exist %%~f (
+            set foundFile=%%~f
+            set "command=start %min% "%windowname%" cmd /k ^"call !venvcmd! ^& %pythondir% %pycmd% !foundFile! %* %minexit%^""  
+            goto :runFile
+        )
+    )
+    rem If no initial file found, open Python shell
+    set command=start %min% "%windowname%" cmd /k "!venvcmd! & %pythondir% %pycmd%"
+    goto :runFile
+)
+```
+
+Note the `%*` in the command - this passes all arguments to the Python script.
+
+## Usage Examples
+
+### Example 1: Basic Argument Passing
+
+**Configuration:**
+
+```batch
+set passarguments=1
+set initialfiles="run.py" "main.py" "app.py"
+```
+
+**Python script (`run.py`):**
+
+```python
+import sys
+
+print(f"Script name: {sys.argv[0]}")
+print(f"Arguments: {sys.argv[1:]}")
+
+for i, arg in enumerate(sys.argv[1:], 1):
+    print(f"  Argument {i}: {arg}")
+```
+
+**Running the launcher:**
+
+```batch
+PythonLauncher.bat --verbose --output results.txt
+```
+
+**Output:**
+
+```
+Script name: run.py
+Arguments: ['--verbose', '--output', 'results.txt']
+  Argument 1: --verbose
+  Argument 2: --output
+  Argument 3: results.txt
+```
+
+### Example 2: Configuration File Arguments
+
+**Python script (`main.py`):**
+
+```python
+import sys
+import json
+
+def main():
+    config_file = "config.json"
+    
+    # Check for config argument
+    if "--config" in sys.argv:
+        idx = sys.argv.index("--config")
+        config_file = sys.argv[idx + 1]
+    
+    with open(config_file) as f:
+        config = json.load(f)
+    
+    print(f"Loaded configuration from {config_file}")
+    print(f"Settings: {config}")
+
+if __name__ == "__main__":
+    main()
+```
+
+**Running with custom config:**
+
+```batch
+PythonLauncher.bat --config production.json
+```
+
+### Example 3: Using argparse
+
+**Python script (`app.py`):**
+
+```python
+import argparse
+
+def main():
+    parser = argparse.ArgumentParser(description="Process data files")
+    parser.add_argument("--input", required=True, help="Input file path")
+    parser.add_argument("--output", required=True, help="Output file path")
+    parser.add_argument("--format", default="json", choices=["json", "csv", "xml"])
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    
+    args = parser.parse_args()
+    
+    if args.verbose:
+        print(f"Processing {args.input}...")
+    
+    # Process the file
+    print(f"Converting {args.input} to {args.format} format")
+    print(f"Output will be saved to {args.output}")
+
+if __name__ == "__main__":
+    main()
+```
+
+**Running with arguments:**
+
+```batch
+PythonLauncher.bat --input data.txt --output result.json --format json --verbose
+```
+
+**Output:**
+
+```
+Processing data.txt...
+Converting data.txt to json format
+Output will be saved to result.json
+```
+
+### Example 4: Boolean Flags
+
+**Python script (`run.py`):**
+
+```python
+import sys
+
+# Check for flags
+debug_mode = "--debug" in sys.argv
+verbose = "--verbose" in sys.argv or "-v" in sys.argv
+quiet = "--quiet" in sys.argv or "-q" in sys.argv
+
+if debug_mode:
+    print("[DEBUG] Debug mode enabled")
+
+if not quiet:
+    print("Starting application...")
+
+if verbose:
+    print("Verbose output enabled")
+    print(f"All arguments: {sys.argv}")
+
+# Your application logic here
+print("Application running")
+```
+
+**Running with flags:**
+
+```batch
+PythonLauncher.bat --debug --verbose
+```
+
+## Advanced Usage
+
+### Passing Arguments with Spaces
+
+When arguments contain spaces, use quotes:
+
+```batch
+PythonLauncher.bat --message "Hello World" --path "C:\My Documents\file.txt"
+```
+
+**Python receives:**
+
+```python
+sys.argv = ['run.py', '--message', 'Hello World', '--path', 'C:\\My Documents\\file.txt']
+```
+
+### Passing Multiple Values
+
+```batch
+PythonLauncher.bat --files data1.txt data2.txt data3.txt --output results
+```
+
+**Python script:**
+
+```python
+import sys
+
+if "--files" in sys.argv:
+    files_idx = sys.argv.index("--files")
+    output_idx = sys.argv.index("--output")
+    
+    # Get all arguments between --files and --output
+    files = sys.argv[files_idx + 1:output_idx]
+    output = sys.argv[output_idx + 1]
+    
+    print(f"Files to process: {files}")
+    print(f"Output location: {output}")
+```
+
+### Using Environment Variables
+
+You can combine environment variables with arguments:
+
+```batch
+set ENV=production
+PythonLauncher.bat --env %ENV% --debug
+```
+
+**Python script:**
+
+```python
+import sys
+import os
+
+# Arguments take precedence over environment variables
+env = os.getenv("ENV", "development")
+
+if "--env" in sys.argv:
+    idx = sys.argv.index("--env")
+    env = sys.argv[idx + 1]
+
+print(f"Running in {env} environment")
+```
+
+## When to Use Arguments
+
+Use `passarguments=1` when:
+
+- Your application needs runtime configuration
+- You're running the launcher from scripts or shortcuts
+- You need to pass different parameters for different runs
+- You're automating tasks with Task Scheduler or batch scripts
+
+**Example automation script:**
+
+```batch
+@echo off
+rem daily-backup.bat
+
+echo Running daily backup...
+cd C:\Projects\MyApp
+PythonLauncher.bat --backup --date %DATE% --notify admin@example.com
+
+if %ERRORLEVEL% EQU 0 (
+    echo Backup completed successfully
+) else (
+    echo Backup failed
+)
+```
+
+## When to Use Drag and Drop
+
+Use `passarguments=0` when:
+
+- You need to test different Python files quickly
+- You're running utility scripts that don't need arguments
+- You want the convenience of dragging files in Windows Explorer
+- Your scripts are self-contained and don't need external parameters
+
+See [Drag and Drop](/usage/drag-and-drop) for more details.
+
+## Creating Shortcuts with Arguments
+
+You can create Windows shortcuts with pre-configured arguments:
+
+<Steps>
+  <Step title="Right-click PythonLauncher.bat">
+    Select "Create shortcut"
+  </Step>
+  
+  <Step title="Right-click the shortcut">
+    Select "Properties"
+  </Step>
+  
+  <Step title="Edit the Target field">
+    Add your arguments after the file path:
+    ```
+    "C:\Projects\MyApp\PythonLauncher.bat" --debug --verbose
+    ```
+  </Step>
+  
+  <Step title="Rename the shortcut">
+    Give it a descriptive name like "Run App (Debug Mode)"
+  </Step>
+</Steps>
+
+Now double-clicking the shortcut will always run with those arguments.
+
+## Troubleshooting
+
+### Arguments Not Received
+
+**Check configuration:**
+
+```batch
+set passarguments=1  # Must be 1 to pass arguments
+```
+
+### Arguments Treated as Filename
+
+If `passarguments=0`, the launcher treats the first argument as a file to run:
+
+```batch
+# With passarguments=0
+PythonLauncher.bat --debug
+# Tries to run a file named "--debug"
+```
+
+**Solution:** Set `passarguments=1`
+
+### No Initial File Found
+
+If no initial file exists and `passarguments=1`, the launcher opens a Python shell:
+
+```batch
+Python 3.11.5 (tags/v3.11.5:...) on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>>
+```
+
+**Solution:** Ensure at least one initial file exists (e.g., `run.py`, `main.py`, or `app.py`)
+
+### Arguments with Special Characters
+
+Special characters like `&`, `|`, `<`, `>` need escaping:
+
+```batch
+# Wrong
+PythonLauncher.bat --query select * from users & exit
+
+# Correct
+PythonLauncher.bat --query "select * from users" 
+```
+
+<Tip>
+Always quote arguments that contain spaces or special characters.
+</Tip>
+
+## Quick Reference
+
+| Task | Command | Requirement |
+|------|---------|-------------|
+| Pass single argument | `PythonLauncher.bat --debug` | `passarguments=1` |
+| Pass multiple arguments | `PythonLauncher.bat --in data.txt --out result.txt` | `passarguments=1` |
+| Arguments with spaces | `PythonLauncher.bat --msg "Hello World"` | `passarguments=1` |
+| Boolean flags | `PythonLauncher.bat --verbose --debug` | `passarguments=1` |
+| No arguments | Double-click launcher | Either setting |

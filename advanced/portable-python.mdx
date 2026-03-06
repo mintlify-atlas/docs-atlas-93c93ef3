@@ -1,0 +1,292 @@
+---
+title: 'Portable Python Setup'
+description: 'Configure the launcher to use portable Python installations'
+icon: 'folder-arrow-down'
+---
+
+## Overview
+
+The Windows Python Launcher can work with portable Python installations that don't require system-wide installation. This is useful for:
+
+- Distributing self-contained applications
+- Running on systems without admin rights
+- Testing specific Python versions
+- Avoiding conflicts with system Python
+
+## Configuration
+
+The `pythondir` configuration variable controls which Python executable is used. By default, it's set to `py` (the Python Launcher for Windows), but you can point it to any Python executable.
+
+### Basic Portable Setup
+
+<Steps>
+  <Step title="Download Portable Python">
+    Download a portable Python distribution (e.g., from python.org as embeddable package or WinPython)
+  </Step>
+  
+  <Step title="Extract to Project">
+    Extract the portable Python to a folder within or near your project directory
+  </Step>
+  
+  <Step title="Configure pythondir">
+    Edit `PythonLauncher.bat` and set the `pythondir` variable to point to the portable Python executable:
+    
+    ```batch
+    set pythondir=%cd%\python-portable\python.exe
+    ```
+  </Step>
+</Steps>
+
+## Relative vs Absolute Paths
+
+### Using Relative Paths (Recommended)
+
+For portable setups, use `%cd%` to reference the current directory. This makes your project folder relocatable:
+
+```batch
+rem Python in a subfolder of your project
+set pythondir=%cd%\python\python.exe
+
+rem Python in a sibling folder
+set pythondir=%cd%\..\python-3.11\python.exe
+
+rem Python in a fixed relative location
+set pythondir=%cd%\tools\python\python.exe
+```
+
+<Tip>
+Using `%cd%` ensures the launcher works regardless of where the project folder is located on the filesystem. This is ideal for distribution or USB drives.
+</Tip>
+
+### Using Absolute Paths
+
+Absolute paths work but are not portable across systems:
+
+```batch
+rem Fixed location - not portable!
+set pythondir=C:\Python311\python.exe
+
+rem Network location
+set pythondir=\\server\shared\python\python.exe
+```
+
+<Warning>
+Absolute paths will break if the project is moved to a different location or run on a different computer. Only use absolute paths for system-specific configurations.
+</Warning>
+
+## Common Portable Structures
+
+### Structure 1: Python Inside Project
+
+```
+MyProject/
+├── PythonLauncher.bat
+├── python/                    (portable Python)
+│   ├── python.exe
+│   ├── python311.dll
+│   └── ...
+├── run.py
+├── requirements.txt
+└── pyvenv/                    (created automatically)
+```
+
+**Configuration:**
+```batch
+set pythondir=%cd%\python\python.exe
+set usevenv=1
+```
+
+### Structure 2: Shared Python Folder
+
+```
+Projects/
+├── python-portable/           (shared Python)
+│   └── python.exe
+├── Project1/
+│   ├── PythonLauncher.bat
+│   └── main.py
+└── Project2/
+    ├── PythonLauncher.bat
+    └── app.py
+```
+
+**Configuration:**
+```batch
+set pythondir=%cd%\..\python-portable\python.exe
+set usevenv=1
+```
+
+### Structure 3: Distribution Package
+
+```
+MyApp/
+├── MyApp.bat                  (renamed launcher)
+├── runtime/
+│   └── python/
+│       └── python.exe
+├── app/
+│   ├── main.py
+│   └── modules/
+└── data/
+```
+
+**Configuration:**
+```batch
+set pythondir=%cd%\runtime\python\python.exe
+set initialfiles="app\main.py"
+set usevenv=0
+set windowname=MyApp
+```
+
+## Python Version Handling
+
+<Warning>
+When using a portable Python executable (not `py` or `py.exe`), the `pythonversion` setting is ignored.
+</Warning>
+
+The launcher automatically detects whether you're using the `py` launcher or a direct Python executable:
+
+```batch
+rem Uses pythonversion (e.g., py -3.11)
+set pythondir=py
+set pythonversion=3.11
+
+rem Ignores pythonversion (direct executable)
+set pythondir=%cd%\python\python.exe
+set pythonversion=3.11  rem This is ignored!
+```
+
+From `PythonLauncher.bat:62-77`, the script checks if the filename is `py` or `py.exe`. If not, it sets `usepylancher=0` and runs Python directly without version flags.
+
+## Virtual Environments with Portable Python
+
+Portable Python works seamlessly with virtual environments:
+
+```batch
+set pythondir=%cd%\python-portable\python.exe
+set usevenv=1
+set venvname=pyvenv
+set installrequirementsfile=1
+```
+
+The virtual environment will be created using the portable Python installation, ensuring complete isolation.
+
+<Tip>
+Using `usevenv=1` with portable Python creates a truly portable development environment. The entire project, Python runtime, and dependencies are contained in one folder.
+</Tip>
+
+## Distribution Considerations
+
+### For End Users
+
+When distributing an application with portable Python:
+
+```batch
+rem Disable venv for end-user distribution
+set usevenv=0
+
+rem Pre-install all dependencies in the portable Python
+rem or use a frozen venv included in the distribution
+set pythondir=%cd%\runtime\python\python.exe
+
+rem Auto-close when done
+set autoclosecmd=1
+
+rem Start minimized for cleaner UX
+set minimizedcmd=1
+
+rem Disable Python download alert (they have portable Python)
+set alertifpynotinstalled=0
+```
+
+### For Developers
+
+When sharing with other developers:
+
+```batch
+rem Enable venv for development
+set usevenv=1
+
+rem Install requirements automatically
+set installrequirementsfile=1
+
+rem Keep window visible for debugging
+set minimizedcmd=0
+set autoclosecmd=0
+
+rem Use relative path to portable Python
+set pythondir=%cd%\python\python.exe
+```
+
+## Troubleshooting
+
+<Accordion title="Python executable not found">
+  Ensure the path in `pythondir` is correct. Test it manually:
+  
+  ```batch
+  %cd%\python\python.exe --version
+  ```
+  
+  If this fails, check:
+  - The path syntax (use `\\` for backslashes in paths)
+  - The portable Python is fully extracted
+  - The `python.exe` file exists at that location
+</Accordion>
+
+<Accordion title="Import errors with portable Python">
+  Some portable Python distributions require additional configuration:
+  
+  ```batch
+  rem Ensure Python can find its standard library
+  set PYTHONPATH=%cd%\python\Lib
+  set pythondir=%cd%\python\python.exe
+  ```
+  
+  Or use the embeddable package with a proper `._pth` file.
+</Accordion>
+
+<Accordion title="Virtual environment creation fails">
+  Ensure the portable Python includes the `venv` module. Some minimal distributions exclude it. You may need:
+  
+  - A full portable Python distribution (not embeddable-only)
+  - Or use `--without-pip` flag if pip is missing
+  
+  Alternatively, disable venv:
+  ```batch
+  set usevenv=0
+  ```
+</Accordion>
+
+## Best Practices
+
+<Tip>
+**Always use forward slashes or double backslashes** in paths to avoid escape character issues:
+
+```batch
+rem Good
+set pythondir=%cd%\python\python.exe
+set pythondir=%cd%/python/python.exe
+
+rem Bad - may cause issues
+set pythondir=%cd%\python\python.exe
+```
+</Tip>
+
+<Tip>
+**Test your configuration** by running `PythonLauncher.bat` from different locations to ensure portability:
+
+```batch
+rem Test from different drives and paths
+C:\Temp> D:\MyProject\PythonLauncher.bat
+D:\> D:\MyProject\PythonLauncher.bat
+```
+</Tip>
+
+<Tip>
+**Document the Python version** in your project README so users know which portable Python to download:
+
+```
+This project uses Python 3.11.x (portable)
+Download from: https://www.python.org/downloads/
+```
+</Tip>

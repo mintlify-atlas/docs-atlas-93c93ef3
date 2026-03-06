@@ -1,0 +1,460 @@
+---
+title: Initial Files
+description: Configure which Python files the launcher auto-detects and runs
+---
+
+The Windows Python Launcher can automatically detect and run Python files in your project directory without requiring you to specify which file to run. This is controlled by the `initialfiles` configuration.
+
+## Default Initial Files
+
+By default, the launcher looks for these files in order:
+
+```batch
+set initialfiles="run.py" "main.py" "app.py"
+```
+
+When you run the launcher without arguments, it:
+
+<Steps>
+  <Step title="Searches for first file">
+    Checks if `run.py` exists in the current directory
+  </Step>
+  
+  <Step title="Searches for second file">
+    If `run.py` doesn't exist, checks for `main.py`
+  </Step>
+  
+  <Step title="Searches for third file">
+    If `main.py` doesn't exist, checks for `app.py`
+  </Step>
+  
+  <Step title="Runs the first match">
+    Executes the first file found and stops searching
+  </Step>
+  
+  <Step title="Fallback to Python shell">
+    If no files are found, opens an interactive Python shell
+  </Step>
+</Steps>
+
+<Note>
+The launcher only runs **one** file - the first one it finds. The order in the `initialfiles` list determines the priority.
+</Note>
+
+## How It Works
+
+### Code Implementation
+
+From `PythonLauncher.bat:137-157`:
+
+```batch
+rem Check if any initial file exists.
+set foundFile=
+for %%f in (%initialfiles%) do (
+    if exist %%~f (
+        set foundFile=%%~f
+        set command=start %min% "%windowname%" cmd /k "!venvcmd! & %pythondir% %pycmd% !foundFile! %minexit%"
+        goto :runFile
+    )
+)
+rem No initial file found - open Python shell
+set command=start %min% "%windowname%" cmd /k "!venvcmd! & %pythondir% %pycmd%"
+goto :runFile
+```
+
+The script:
+1. Loops through each filename in `initialfiles`
+2. Checks if the file exists using `if exist`
+3. Sets the command to run the first file found
+4. Immediately jumps to `:runFile` (stops searching)
+5. If no files exist, opens a Python shell
+
+## Customizing Initial Files
+
+You can customize the list to match your project structure.
+
+### Adding Custom Files
+
+**Example 1: Web application**
+
+```batch
+set initialfiles="app.py" "wsgi.py" "main.py" "run.py"
+```
+
+The launcher will prioritize `app.py` (common for Flask/FastAPI apps) before checking other files.
+
+**Example 2: Django project**
+
+```batch
+set initialfiles="manage.py" "run.py" "main.py"
+```
+
+**Example 3: Data science project**
+
+```batch
+set initialfiles="analyze.py" "process.py" "main.py"
+```
+
+**Example 4: Script collection**
+
+```batch
+set initialfiles="start.py" "launcher.py" "init.py" "main.py"
+```
+
+### Changing the Order
+
+The order matters! The first file found will be executed:
+
+```batch
+# If both run.py and main.py exist, run.py will be executed
+set initialfiles="run.py" "main.py" "app.py"
+
+# If both run.py and main.py exist, main.py will be executed
+set initialfiles="main.py" "run.py" "app.py"
+```
+
+<Tip>
+Put your most common entry point first to ensure it runs when multiple initial files exist.
+</Tip>
+
+### Single Entry Point
+
+If your project only has one entry point:
+
+```batch
+set initialfiles="run.py"
+```
+
+The launcher will only look for `run.py` and open a Python shell if it doesn't exist.
+
+### Files in Subdirectories
+
+<Warning>
+The `initialfiles` configuration only checks the current directory (where the launcher is located). It does not search subdirectories.
+</Warning>
+
+If your entry point is in a subdirectory, include the path:
+
+```batch
+set initialfiles="src\main.py" "app\run.py" "main.py"
+```
+
+**Project structure:**
+
+```
+project/
+├── PythonLauncher.bat
+├── src/
+│   └── main.py  ← Will be found and executed
+└── requirements.txt
+```
+
+## Use Cases
+
+### Multi-Purpose Project
+
+You have a project with different entry points for different purposes:
+
+```
+project/
+├── PythonLauncher.bat
+├── server.py      # Web server
+├── worker.py      # Background worker
+├── migrate.py     # Database migration
+└── main.py        # Default CLI tool
+```
+
+**Configuration:**
+
+```batch
+set initialfiles="main.py" "server.py" "worker.py"
+```
+
+Running the launcher will start `main.py` by default. Use [drag and drop](/usage/drag-and-drop) to run other files.
+
+### Development vs Production
+
+Create different launchers for different environments:
+
+**PythonLauncher-Dev.bat:**
+
+```batch
+set initialfiles="dev.py" "main.py"
+set windowname=Development
+```
+
+**PythonLauncher-Prod.bat:**
+
+```batch
+set initialfiles="prod.py" "main.py"
+set windowname=Production
+```
+
+### Testing Environment
+
+Create a test launcher:
+
+```batch
+set initialfiles="test_runner.py" "pytest_run.py" "main.py"
+set windowname=Test Runner
+```
+
+## No Initial Files Found
+
+If none of the initial files exist, the launcher opens an interactive Python shell:
+
+```batch
+C:\Projects\MyApp> py -3.11
+Python 3.11.5 (tags/v3.11.5:cce6ba9, Aug 24 2023, 14:38:34) [MSC v.1936 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+```
+
+### Virtual Environment Activation
+
+Even without initial files, the Python shell runs in your virtual environment (if `usevenv=1`):
+
+```batch
+C:\Projects\MyApp> pyvenv\Scripts\activate
+(pyvenv) C:\Projects\MyApp> py -3.11
+Python 3.11.5 ...
+>>> import requests  # Packages from venv are available
+>>>
+```
+
+This is useful for:
+- Testing installed packages interactively
+- Running quick Python commands
+- Debugging environment issues
+
+## Best Practices
+
+### 1. Include Standard Names
+
+Always include common entry point names:
+
+```batch
+set initialfiles="run.py" "main.py" "app.py"
+```
+
+This makes your project familiar to other developers.
+
+### 2. Put Project-Specific Files First
+
+If your project uses a specific entry point, list it first:
+
+```batch
+# For a Flask app
+set initialfiles="wsgi.py" "app.py" "main.py"
+
+# For a Django project
+set initialfiles="manage.py" "main.py"
+
+# For a custom script
+set initialfiles="launcher.py" "main.py" "run.py"
+```
+
+### 3. Document Your Entry Points
+
+Create a README or comment in your batch file:
+
+```batch
+# Entry points:
+# - server.py: Starts the web server
+# - worker.py: Starts background tasks
+# - main.py: CLI interface
+set initialfiles="server.py" "main.py"
+```
+
+### 4. Limit the List
+
+Don't add too many files. Keep it to 3-5 most likely entry points:
+
+```batch
+# Good: Clear and focused
+set initialfiles="run.py" "main.py" "app.py"
+
+# Too many: Unclear which is primary
+set initialfiles="run.py" "main.py" "app.py" "start.py" "launch.py" "init.py" "server.py"
+```
+
+## Integration with Other Features
+
+### With passarguments=1
+
+When `passarguments=1`, the launcher finds the first initial file and passes all arguments to it:
+
+```batch
+set passarguments=1
+set initialfiles="run.py" "main.py"
+```
+
+**Running:**
+
+```batch
+PythonLauncher.bat --debug --config prod
+```
+
+**Executes:**
+
+```batch
+py -3.11 run.py --debug --config prod
+```
+
+See [Arguments](/usage/arguments) for more details.
+
+### With Drag and Drop
+
+When you drag a file onto the launcher (with `passarguments=0`), the initial files list is ignored:
+
+```batch
+set passarguments=0
+set initialfiles="run.py" "main.py"
+```
+
+Dragging `test.py` onto the launcher will run `test.py`, not `run.py` or `main.py`.
+
+See [Drag and Drop](/usage/drag-and-drop) for more details.
+
+### With Virtual Environment
+
+Initial files are always executed in the configured virtual environment:
+
+```batch
+set usevenv=1
+set venvname=pyvenv
+set initialfiles="run.py" "main.py"
+```
+
+**Execution sequence:**
+
+```batch
+# 1. Create venv if needed
+py -3.11 -m venv pyvenv
+
+# 2. Install requirements if needed
+pyvenv\Scripts\activate
+py -3.11 -m pip install -r requirements.txt
+
+# 3. Run initial file in venv
+call pyvenv\Scripts\activate
+py -3.11 run.py
+```
+
+## Examples by Project Type
+
+### Flask Application
+
+```batch
+set initialfiles="wsgi.py" "app.py" "run.py" "main.py"
+set windowname=Flask Server
+```
+
+**File structure:**
+
+```
+flask-app/
+├── PythonLauncher.bat
+├── wsgi.py        ← Runs first
+├── app.py
+├── requirements.txt
+└── pyvenv/
+```
+
+### FastAPI Application
+
+```batch
+set initialfiles="main.py" "app.py" "run.py"
+set windowname=FastAPI Server
+```
+
+### Data Analysis Project
+
+```batch
+set initialfiles="analyze.py" "process.py" "explore.py" "main.py"
+set windowname=Data Analysis
+```
+
+### Automation Scripts
+
+```batch
+set initialfiles="automate.py" "scheduler.py" "main.py"
+set windowname=Automation
+```
+
+### Testing Framework
+
+```batch
+set initialfiles="run_tests.py" "pytest_runner.py" "test_all.py"
+set windowname=Test Runner
+```
+
+## Troubleshooting
+
+### Wrong File Runs
+
+If the wrong file is being executed, check the order:
+
+```batch
+# Current configuration
+set initialfiles="main.py" "run.py" "app.py"
+
+# If you want run.py to run instead, reorder:
+set initialfiles="run.py" "main.py" "app.py"
+```
+
+### File Not Found
+
+If your file exists but isn't found:
+
+1. **Check the filename exactly** (case matters on some systems):
+   ```batch
+   # If your file is Run.py (capital R)
+   set initialfiles="Run.py" "main.py"
+   ```
+
+2. **Check the file location** (must be in same directory as launcher):
+   ```
+   project/
+   ├── PythonLauncher.bat  ← Here
+   └── run.py              ← Must be here too
+   ```
+
+3. **Check for typos**:
+   ```batch
+   # Wrong
+   set initialfiles="runn.py" "main.py"
+   
+   # Correct
+   set initialfiles="run.py" "main.py"
+   ```
+
+### Always Opens Python Shell
+
+If the launcher always opens a Python shell:
+
+1. None of your initial files exist
+2. The filenames are misspelled
+3. The files are in a subdirectory (need to include path)
+
+**Solution:**
+
+```batch
+# Add the correct path
+set initialfiles="src\run.py" "run.py" "main.py"
+```
+
+<Tip>
+To debug, open a command prompt in your project directory and run `dir *.py` to see all Python files.
+</Tip>
+
+## Quick Reference
+
+| Configuration | Behavior |
+|---------------|----------|
+| `set initialfiles="run.py" "main.py"` | Runs `run.py` if it exists, otherwise `main.py` |
+| `set initialfiles="app.py"` | Only runs `app.py`, no fallback |
+| `set initialfiles="src\main.py" "main.py"` | Checks `src\main.py` first, then root `main.py` |
+| Empty list or no files found | Opens Python interactive shell |
+| With `passarguments=1` | Passes arguments to the initial file |
+| With drag and drop | Ignores initial files, runs dragged file |
